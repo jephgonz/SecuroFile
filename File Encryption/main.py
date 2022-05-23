@@ -1,4 +1,4 @@
-#libraries
+#LIBRARIES
 import base64
 import hashlib
 from Crypto.Cipher import AES
@@ -8,29 +8,33 @@ import tkinter as tk
 from tkinter import filedialog
 import subprocess
 import mysql.connector
+import zipfile
+from pathlib import Path
 
-#database connection
+#DB CONNECTION
 #con = mysql.connector.connect(host="localhost", user="root", password="", database="EFile")
 
-#createcursor object
+#DB CURSOR
 #cursor = con.cursor()
 
-#variables
+#VARIABLES
 BLOCK_SIZE = 16
 pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
 unpad = lambda s: s[:-ord(s[len(s) - 1:])]
+list_files = ['cache/header', 'cache/key', 'cache/enc']
+key = 'null'
 
-#generate key
+#GENERATE KEY
 key = Fernet.generate_key()
 print(key)
 with open('cache/key', 'wb') as filekey:
    filekey.write(key)
 
-#current hardware id
+#GET HARDWARE UUID
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 print(current_machine_id)
 
-#functions
+#FUNCTIONS
 def encrypt(raw, key):
     private_key = hashlib.sha256(key).digest()
     BS = AES.block_size
@@ -48,26 +52,38 @@ def decrypt(enc, key):
     cipher = AES.new(private_key, AES.MODE_CFB, iv)
     return unpad(base64.b64decode(cipher.decrypt(enc[AES.block_size:])).decode('utf8'))
 
-def regdev():
-    current_machine_id = str(subprocess.check_output('wmic bios get serialnumber'), 'utf-8').split('\n')[1].strip()
+def writeenc(encrypted):
+    file = open('cache/enc', "wb")
+    file.write(encrypted)
+    file.close()
 
-#file select
+def compressenc(file_name):
+    with zipfile.ZipFile('encrypted/' + file_name + '', 'w') as zipF:
+        for file in list_files:
+            zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
+
+def extractenc(file_name):
+    with zipfile.ZipFile('encrypted/' + file_name + '', 'r') as zip_ref:
+        zip_ref.extractall('')
+
+#ENCRYPTION
 root = tk.Tk()
 root.withdraw()
 file = filedialog.askopenfilename()
+file_name = Path(file).stem
 file = open(file, "rb")
 raw = str(file.read())
-
-#encrypt
 encrypted = encrypt(raw, key)
 print(encrypted)
 file.close()
+writeenc(encrypted)
+compressenc(file_name)
 
-#write encrypted file
-file = open('cache/enc', "wb")
-file.write(encrypted)
-file.close()
-
-#decrypt
+#DECRYPTION
+root = tk.Tk()
+root.withdraw()
+file = filedialog.askopenfilename()
+file_name = Path(file).stem
+extractenc(file_name)
 decrypted = decrypt(encrypted, key)
 print(decrypted)
