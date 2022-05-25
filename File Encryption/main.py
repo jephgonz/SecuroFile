@@ -12,10 +12,19 @@ import zipfile
 from pathlib import Path
 
 #DB CONNECTION
-#con = mysql.connector.connect(host="localhost", user="root", password="", database="EFile")
+con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
 
 #DB CURSOR
-#cursor = con.cursor()
+cursor = con.cursor()
+query = "select * from user_devices"
+cursor.execute(query)
+table = cursor.fetchall()
+for row in table:
+    print(row[0])
+    print(row[1])
+    print(row[2])
+    print(row[3])
+    print(row[4])
 
 #VARIABLES
 BLOCK_SIZE = 16
@@ -23,12 +32,7 @@ pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s)
 unpad = lambda s: s[:-ord(s[len(s) - 1:])]
 list_files = ['cache/header', 'cache/key', 'cache/enc']
 key = 'null'
-
-#GENERATE KEY
-key = Fernet.generate_key()
-print(key)
-with open('cache/key', 'wb') as filekey:
-   filekey.write(key)
+user_id = 'null'
 
 #GET HARDWARE UUID
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
@@ -66,6 +70,18 @@ def extractenc(file_name):
     with zipfile.ZipFile('encrypted/' + file_name + '', 'r') as zip_ref:
         zip_ref.extractall('')
 
+def genkey():
+    key = Fernet.generate_key()
+    print(key)
+    with open('cache/key', 'wb') as filekey:
+        filekey.write(key)
+
+def regdev():
+    devId = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
+    cursor.execute("INSERT INTO `devices`(`dev_id`, `user_id`, `deviceID`, `date_registered`, `date_modified`) "
+                   "VALUES ('',"+user_id+","+devId+",'','')")
+
+genkey()
 #ENCRYPTION
 root = tk.Tk()
 root.withdraw()
