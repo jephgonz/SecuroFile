@@ -5,7 +5,7 @@ from Crypto.Cipher import AES
 from Cryptodome.Random import get_random_bytes
 from cryptography.fernet import Fernet
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import *
 import subprocess
 import mysql.connector
 import zipfile
@@ -114,9 +114,19 @@ def updateDevStat(devId,status):
     cursor.execute(sql)
     con.commit()
 
+def main_screen():
+    screen = Tk()
+    screen.geometry("400x600")
+    screen.title("SecuroFile")
+    screen.resizable(width=False, height=False)
+
+    screen.mainloop()
+
+main_screen()
 
 genkey()
 regdev(current_machine_id)
+updateDevStat('30','Active')
 # ENCRYPTION
 root = tk.Tk()
 root.withdraw()
