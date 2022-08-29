@@ -1,11 +1,13 @@
 # LIBRARIES
 import base64
 import hashlib
+import tkinter as tk
+from tkinter import *
+from tkinter import filedialog
+from tkinter import messagebox
 from Crypto.Cipher import AES
 from Cryptodome.Random import get_random_bytes
 from cryptography.fernet import Fernet
-import tkinter as tk
-from tkinter import *
 import subprocess
 import mysql.connector
 import zipfile
@@ -27,8 +29,7 @@ for row in table:
     print(row[2])
     print(row[3])
     print(row[4])
-    print(row[5])
-    print(row[6])
+print("TEST GET USERS WITH DEVICES DONE.")
 
 # VARIABLES
 BLOCK_SIZE = 16
@@ -39,9 +40,10 @@ key = 'placeholder'
 user_id = '1'  # ADD USER_ID AFTER LOGIN
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 print(current_machine_id)
+print("TEST GET CURRENT MACHINE ID DONE.")
 
 
-# FUNCTIONS
+# -------------- START OF FUNCTIONS --------------
 def encrypt(raw, key):
     private_key = hashlib.sha256(key.encode('utf8')).digest()
     BS = AES.block_size
@@ -68,13 +70,13 @@ def writeenc(encrypted):
 
 
 def compressenc(file_name):
-    with zipfile.ZipFile('encrypted/' + file_name + '', 'w') as zipF:
+    with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
         for file in list_files:
             zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
 
 def extractenc(file_name):
-    with zipfile.ZipFile('encrypted/' + file_name + '', 'r') as zip_ref:
+    with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'r') as zip_ref:
         zip_ref.extractall('')
 
 
@@ -107,10 +109,10 @@ def regdev(current_machine_id):
 
 def updateDevStat(devId,status):
     if status == "Active":
-        status = "Inactive"
-    else:
         status = "Active"
-    sql = "UPDATE `devices` SET `date_modified` = 'CURRENT_TIMESTAMP()', `status` = '"+status+"' WHERE `devices`. `dev_id` = "+devId+""
+    else:
+        status = "Inactive"
+    sql = "UPDATE `devices` SET `date_modified` = CURRENT_TIMESTAMP, `status` = '"+status+"' WHERE `devices`. `dev_id` = "+devId+""
     cursor.execute(sql)
     con.commit()
 
@@ -119,15 +121,26 @@ def main_screen():
     screen.geometry("400x600")
     screen.title("SecuroFile")
     screen.resizable(width=False, height=False)
+    screen.configure(bg="#fff")
+    frame = Frame(screen,width=350,height=550,bg="red")
+    frame.place(x=25,y=25)
+    img = PhotoImage(file='media/user.png')
+    Label(frame, image=img, bg='white').place(x=0, y=0)
+    heading = Label(frame,text='Login',fg="#000",bg="white",font=('Arial',24,'bold'))
+    heading.place(x=130,y=50)
 
     screen.mainloop()
+# --------------- END OF FUNCTIONS ---------------
 
+# ----------------- SCREEN VIEWS -----------------
 main_screen()
 
+# ----------------- INITIATIONS ------------------
 genkey()
 regdev(current_machine_id)
-updateDevStat('30','Active')
-# ENCRYPTION
+updateDevStat('8','Inactive')
+
+# ------------------ ENCRYPTION ------------------
 root = tk.Tk()
 root.withdraw()
 file = filedialog.askopenfilename()
@@ -138,13 +151,18 @@ encrypted = encrypt(raw, key)
 print(encrypted)
 file.close()
 writeenc(encrypted)
+
+# Compile File
 compressenc(file_name)
 
-# DECRYPTION
+# ------------------ DECRYPTION ------------------
 root = tk.Tk()
 root.withdraw()
 file = filedialog.askopenfilename()
 file_name = Path(file).stem
+
+# Decompress Encrypted File
 extractenc(file_name)
+
 decrypted = decrypt(encrypted, key)
 print(decrypted)
