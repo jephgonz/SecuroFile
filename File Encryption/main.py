@@ -20,16 +20,11 @@ unpad = lambda s: s[:-ord(s[len(s) - 1:])]
 
 list_files = ['cache/header', 'cache/key', 'cache/enc']
 
-key = 'placeholder'
-
-user_id = '1'  # ADD USER_ID AFTER LOGIN
-
+key = ''
+user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
-print(current_machine_id)
-print("TEST GET CURRENT MACHINE ID DONE.")
 
 FONT = ('Nirmala UI', 16, 'bold')
-
 
 # TKINTER INIT
 class tkinterApp(tk.Tk):
@@ -53,7 +48,6 @@ class tkinterApp(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
-
 # LOGIN
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -61,31 +55,23 @@ class StartPage(tk.Frame):
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
-
         heading = Label(frame, text='LOGIN', fg="#FFFFFF", bg="#292F36", font=FONT)
         heading.grid(row=1, columnspan=2)
-
         EMAIL = StringVar()
         PASS = StringVar()
-
         lbl_username = Label(frame, text="Email:", font=FONT, bd=10, fg="#FFFFFF", bg="#292F36")
         lbl_username.grid(row=2)
         lbl_password = Label(frame, text="Password:", font=FONT, bd=10, fg="#FFFFFF", bg="#292F36")
         lbl_password.grid(row=3)
-
         email = Entry(frame, font=FONT, textvariable=EMAIL, width=19)
         email.grid(row=2, column=1)
         pass1 = Entry(frame, font=FONT, textvariable=PASS, width=19, show="*")
         pass1.grid(row=3, column=1)
         lbl_result = Label(frame, text="", font=FONT, fg="#FFFFFF", bg="#292F36")
         lbl_result.grid(row=4, columnspan=2)
-
-        btn_login = Button(frame, font=FONT, text="Login",
-                           command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#4ECDC4")
+        btn_login = Button(frame, font=FONT, text="Login", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#4ECDC4")
         btn_login.grid(row=5, columnspan=2)
-
-        button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF",
-                         bg="#FF6B6B")
+        button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF", bg="#FF6B6B")
         button2.grid(row=6, columnspan=2)
 
         def database():
@@ -110,14 +96,15 @@ class StartPage(tk.Frame):
                     for row2 in table2:
                         hashed = row2[5]
                         print(row2[5])
+                        global user_id
+                        user_id = row2[0]
+                        print(user_id)
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
-                        lbl_result.config(text="It matches!", fg="green")
                         controller.show_frame(Page2)
                     else:
-                        lbl_result.config(text="Didn't match!", fg="red")
+                        lbl_result.config(text="Password incorrect", fg="red")
                 else:
                     lbl_result.config(text="Email not registered", fg="red")
-
 
 # REGISTER
 class Page1(tk.Frame):
@@ -128,14 +115,12 @@ class Page1(tk.Frame):
         frame.place(x=25, y=25)
         heading = Label(frame, text='REGISTER', fg="#FFFFFF", bg="#292F36", font=FONT)
         heading.grid(row=1, columnspan=2)
-
         FNAME = StringVar()
         MNAME = StringVar()
         LNAME = StringVar()
         EMAIL = StringVar()
         PASS = StringVar()
         RPASS = StringVar()
-
         lbl_firstname = Label(frame, text="First name:", font=FONT, bd=5, fg="#FFFFFF", bg="#292F36")
         lbl_firstname.grid(row=2)
         lbl_firstname = Label(frame, text="Middle name:", font=FONT, bd=5, fg="#FFFFFF", bg="#292F36")
@@ -150,7 +135,6 @@ class Page1(tk.Frame):
         lbl_password.grid(row=7)
         lbl_result = Label(frame, text="", font=FONT, fg="#FFFFFF", bg="#292F36")
         lbl_result.grid(row=8, columnspan=2)
-
         fname = Entry(frame, font=FONT, textvariable=FNAME, width=14)
         fname.grid(row=2, column=1)
         mname = Entry(frame, font=FONT, textvariable=MNAME, width=14)
@@ -163,15 +147,9 @@ class Page1(tk.Frame):
         pass1.grid(row=6, column=1)
         rpass1 = Entry(frame, font=FONT, textvariable=RPASS, width=14, show="*")
         rpass1.grid(row=7, column=1)
-
-        btn_register = Button(frame, font=FONT, text="Register", state=NORMAL,
-                              command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(),
-                                                            PASS.get(), RPASS.get(), lbl_result, btn_register),
-                              fg="#FFFFFF", bg="#4ECDC4")
+        btn_register = Button(frame, font=FONT, text="Register", state=NORMAL, command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(), PASS.get(), RPASS.get(), lbl_result, btn_register), fg="#FFFFFF", bg="#4ECDC4")
         btn_register.grid(row=9, columnspan=2)
-
-        button2 = Button(frame, font=FONT, text="Login", command=lambda: controller.show_frame(StartPage), fg="#FFFFFF",
-                         bg="#FF6B6B")
+        button2 = Button(frame, font=FONT, text="Login", command=lambda: controller.show_frame(StartPage), fg="#FFFFFF", bg="#FF6B6B")
         button2.grid(row=10, columnspan=2)
 
         def database():
@@ -191,9 +169,7 @@ class Page1(tk.Frame):
                         lbl_result.config(text="Email is already registered", fg="red")
                     else:
                         PASS = bcrypt.hashpw(PASS.encode('utf8'), bcrypt.gensalt())
-                        cursor.execute(
-                            "INSERT INTO `users` (fname, mname, lname, email, password) VALUES(%s, %s, %s, %s, %s)",
-                            (str(FNAME), str(MNAME), str(LNAME), str(EMAIL), str(PASS.decode("utf-8"))))
+                        cursor.execute("INSERT INTO `users` (fname, mname, lname, email, password) VALUES(%s, %s, %s, %s, %s)", (str(FNAME), str(MNAME), str(LNAME), str(EMAIL), str(PASS.decode("utf-8"))))
                         lbl_result.config(text="Successfully Created!", fg="green")
                         con.commit()
                         cursor.close()
@@ -209,13 +185,11 @@ def database():
     con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
     cursor = con.cursor()
 
-
 def genkey():
     key = Fernet.generate_key()
     print(key)
     with open('cache/key', 'wb') as filekey:
         filekey.write(key)
-
 
 def regdev(current_machine_id):
     database()
@@ -229,14 +203,12 @@ def regdev(current_machine_id):
             match = 1
             print("Device already exist.")
             break
-
     if match == 0:
         sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
         val = ("" + user_id + "", "" + current_machine_id + "")
         cursor.execute(sql, val)
         con.commit()
         print("Device registered successfully.")
-
 
 def updateDevStat(devId, status):
     if status == "Active":
@@ -247,24 +219,19 @@ def updateDevStat(devId, status):
     cursor.execute(sql)
     con.commit()
 
-
 class Page2(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
-
-        btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file()),
-                             fg="#FFFFFF", bg="#4ECDC4")
+        btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file()), fg="#FFFFFF", bg="#4ECDC4")
         btn_encrypt.grid(row=1, columnspan=2)
-        btn_decrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (decrypt_file()),
-                             fg="#FFFFFF", bg="#FF6B6B")
+        btn_decrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (decrypt_file()), fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=1, columnspan=2)
-
         genkey()
-        regdev(current_machine_id)
-        updateDevStat('8', 'Inactive')
+        # regdev(current_machine_id)
+        # updateDevStat('8', 'Inactive')
 
         def encrypt_file():
             root = tk.Tk()
@@ -318,7 +285,6 @@ class Page2(tk.Frame):
         def extractenc(file_name):
             with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'r') as zip_ref:
                 zip_ref.extractall('')
-
 
 # DRIVER CODE
 app = tkinterApp()
