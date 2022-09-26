@@ -227,8 +227,8 @@ class Page2(tk.Frame):
         frame.place(x=25, y=25)
         btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file()), fg="#FFFFFF", bg="#4ECDC4")
         btn_encrypt.grid(row=1, columnspan=2)
-        btn_decrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (decrypt_file()), fg="#FFFFFF", bg="#FF6B6B")
-        btn_decrypt.grid(row=1, columnspan=2)
+        btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file()), fg="#FFFFFF", bg="#FF6B6B")
+        btn_decrypt.grid(row=2, columnspan=2)
         genkey()
         # regdev(current_machine_id)
         # updateDevStat('8', 'Inactive')
@@ -241,6 +241,7 @@ class Page2(tk.Frame):
             file = open(file, "rb")
             raw = str(file.read())
             encrypted = encrypt(raw, key)
+            print('This is Encrypted')
             print(encrypted)
             file.close()
             writeenc(encrypted)
@@ -270,8 +271,13 @@ class Page2(tk.Frame):
             root.withdraw()
             file = filedialog.askopenfilename()
             file_name = Path(file).stem
-            extractenc(file_name)
-            decrypted = decrypt(encrypted, key)
+            file_enc = open('cache/enc', "rb")
+            file_key = open('cache/key', "rb")
+            enc = str(file_enc.read())
+            enc_key = str(file_key.read())
+            print('Read encrypted file')
+            print(enc)
+            decrypted = decrypt(enc, enc_key)
             print(decrypted)
 
         def decrypt(enc, key):
@@ -281,10 +287,6 @@ class Page2(tk.Frame):
             iv = enc[:AES.block_size]
             cipher = AES.new(private_key, AES.MODE_CFB, iv)
             return unpad(base64.b64decode(cipher.decrypt(enc[AES.block_size:])).decode('utf8'))
-
-        def extractenc(file_name):
-            with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'r') as zip_ref:
-                zip_ref.extractall('')
 
 # DRIVER CODE
 app = tkinterApp()
