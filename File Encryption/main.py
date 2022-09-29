@@ -1,36 +1,68 @@
 # LIBRARIES
-import base64
 import bcrypt
-import hashlib
 import tkinter as tk
 from tkinter import *
-from tkinter import filedialog
 from Crypto import Random
 from Crypto.Cipher import AES
-from Cryptodome.Random import get_random_bytes
 from cryptography.fernet import Fernet
-from base64 import b64encode, b64decode
 import subprocess
 import mysql.connector
 import zipfile
-from pathlib import Path
 
 # GLOBAL VARIABLES
 BLOCK_SIZE = 16
 pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
 unpad = lambda s: s[:-ord(s[len(s) - 1:])]
-
 list_files = ['cache/header', 'cache/key', 'cache/enc']
-
-# FILE KEY
 key = ''
-# USER ID
 user_id = ''
-# GET CURRENT MACHINE ID
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
-
 FONT = ('Nirmala UI', 16, 'bold')
 
+# GLOBAL FUNCTIONS
+def database():
+    global con, cursor
+    con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
+    cursor = con.cursor()
+
+def genkey():
+    key = Fernet.generate_key()
+    print(key)
+    with open('key', 'wb') as filekey:
+        filekey.write(key)
+
+def regdev(current_machine_id):
+    database()
+    print(current_machine_id)
+    query = "select * from devices"
+    cursor.execute(query)
+    table = cursor.fetchall()
+    match = 0
+    for row in table:
+        if current_machine_id == str(row[2]):
+            match = 1
+            print("Device already exist.")
+            break
+    if match == 0:
+        sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
+        val = ("" + user_id + "", "" + current_machine_id + "")
+        cursor.execute(sql, val)
+        con.commit()
+        print("Device registered successfully.")
+
+def updateDevStat(devId, status):
+    if status == "Active":
+        status = "Active"
+    else:
+        status = "Inactive"
+    sql = "UPDATE `devices` SET `date_modified` = CURRENT_TIMESTAMP, `status` = '" + status + "' WHERE `devices`. `dev_id` = " + devId + ""
+    cursor.execute(sql)
+    con.commit()
+
+def compressenc(file_name):
+    with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
+        for file in list_files:
+            zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
 # TKINTER INIT
 class tkinterApp(tk.Tk):
@@ -82,11 +114,6 @@ class StartPage(tk.Frame):
         button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF",
                          bg="#FF6B6B")
         button2.grid(row=6, columnspan=2)
-
-        def database():
-            global con, cursor
-            con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
-            cursor = con.cursor()
 
         def login_user(EMAIL, PASS, lbl_result):
             database()
@@ -166,11 +193,6 @@ class Page1(tk.Frame):
                          bg="#FF6B6B")
         button2.grid(row=10, columnspan=2)
 
-        def database():
-            global con, cursor
-            con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
-            cursor = con.cursor()
-
         def register_user(FNAME, MNAME, LNAME, EMAIL, PASS, RPASS, lbl_result, btn_register):
             database()
             if FNAME == "" or MNAME == "" or LNAME == "" or EMAIL == "" or PASS == "" or RPASS == "":
@@ -196,49 +218,6 @@ class Page1(tk.Frame):
 
 
 # MAIN APP
-def database():
-    global con, cursor
-    con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
-    cursor = con.cursor()
-
-
-def genkey():
-    key = Fernet.generate_key()
-    print(key)
-    with open('cache/key', 'wb') as filekey:
-        filekey.write(key)
-
-
-def regdev(current_machine_id):
-    database()
-    print(current_machine_id)
-    query = "select * from devices"
-    cursor.execute(query)
-    table = cursor.fetchall()
-    match = 0
-    for row in table:
-        if current_machine_id == str(row[2]):
-            match = 1
-            print("Device already exist.")
-            break
-    if match == 0:
-        sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
-        val = ("" + user_id + "", "" + current_machine_id + "")
-        cursor.execute(sql, val)
-        con.commit()
-        print("Device registered successfully.")
-
-
-def updateDevStat(devId, status):
-    if status == "Active":
-        status = "Active"
-    else:
-        status = "Inactive"
-    sql = "UPDATE `devices` SET `date_modified` = CURRENT_TIMESTAMP, `status` = '" + status + "' WHERE `devices`. `dev_id` = " + devId + ""
-    cursor.execute(sql)
-    con.commit()
-
-
 class Page2(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -251,10 +230,12 @@ class Page2(tk.Frame):
         btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file()),
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=2, columnspan=2)
+
+        # GENERATE KEY FOR FILE
         genkey()
 
-        # regdev(current_machine_id)
-        # updateDevStat('8', 'Inactive')
+        def pad(s):
+            return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
 
         def encrypt(message, key, key_size=256):
             message = pad(message)
@@ -269,16 +250,6 @@ class Page2(tk.Frame):
             with open(file_name + ".enc", 'wb') as fo:
                 fo.write(enc)
 
-        def writeenc(encrypted):
-            file = open('cache/enc', "wb")
-            file.write(encrypted)
-            file.close()
-
-        def compressenc(file_name):
-            with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
-                for file in list_files:
-                    zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
-
         def decrypt(ciphertext, key):
             iv = ciphertext[:AES.block_size]
             cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -291,7 +262,6 @@ class Page2(tk.Frame):
             dec = decrypt(ciphertext, key)
             with open(file_name[:-4], 'wb') as fo:
                 fo.write(dec)
-
 
 # DRIVER CODE
 app = tkinterApp()
