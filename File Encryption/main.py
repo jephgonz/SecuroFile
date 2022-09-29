@@ -5,6 +5,7 @@ import hashlib
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
+from Crypto import Random
 from Crypto.Cipher import AES
 from Cryptodome.Random import get_random_bytes
 from cryptography.fernet import Fernet
@@ -21,8 +22,11 @@ unpad = lambda s: s[:-ord(s[len(s) - 1:])]
 
 list_files = ['cache/header', 'cache/key', 'cache/enc']
 
+# FILE KEY
 key = ''
+# USER ID
 user_id = ''
+# GET CURRENT MACHINE ID
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 
 FONT = ('Nirmala UI', 16, 'bold')
@@ -252,34 +256,18 @@ class Page2(tk.Frame):
         # regdev(current_machine_id)
         # updateDevStat('8', 'Inactive')
 
-        def encrypt_file():
-            root = tk.Tk()
-            root.withdraw()
-            file = filedialog.askopenfilename()
-            file_name = Path(file).stem
-            file = open(file, "rb")
-            raw = str(file.read())
-            encrypted = encrypt(raw, key)
-            print('This is Encrypted')
-            print(encrypted)
-            file.close()
-            writeenc(encrypted)
-            compressenc(file_name)
+        def encrypt(message, key, key_size=256):
+            message = pad(message)
+            iv = Random.new().read(AES.block_size)
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            return iv + cipher.encrypt(message)
 
-        def encrypt(raw, key):
-            # generate a random salt
-            salt = get_random_bytes(AES.block_size)
-
-            # use the Scrypt KDF to get a private key from the password
-            private_key = hashlib.scrypt(
-                key.encode(), salt=salt, n=2 ** 14, r=8, p=1, dklen=32)
-
-            # create cipher config
-            cipher_config = AES.new(private_key, AES.MODE_GCM)
-
-            # return a dictionary with the encrypted text
-            cipher_text, tag = cipher_config.encrypt_and_digest(bytes(raw, 'utf-8'))
-            return b64encode(cipher_text).decode('utf-8')
+        def encrypt_file(file_name, key):
+            with open(file_name, 'rb') as fo:
+                plaintext = fo.read()
+            enc = encrypt(plaintext, key)
+            with open(file_name + ".enc", 'wb') as fo:
+                fo.write(enc)
 
         def writeenc(encrypted):
             file = open('cache/enc', "wb")
@@ -291,38 +279,18 @@ class Page2(tk.Frame):
                 for file in list_files:
                     zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
-        def decrypt_file():
-            root = tk.Tk()
-            root.withdraw()
-            file = filedialog.askopenfilename()
-            file_name = Path(file).stem
-            file_enc = open('cache/enc', "rb")
-            file_key = open('cache/key', "rb")
-            enc = str(file_enc.read())
-            enc_key = str(file_key.read())
-            print('Read encrypted file')
-            print(enc)
-            decrypted = decrypt(enc, enc_key)
-            print(decrypted)
+        def decrypt(ciphertext, key):
+            iv = ciphertext[:AES.block_size]
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            plaintext = cipher.decrypt(ciphertext[AES.block_size:])
+            return plaintext.rstrip(b"\0")
 
-        def decrypt(enc, enc_key):
-            # decode the dictionary entries from base64
-            salt = b64decode(enc['salt'])
-            cipher_text = b64decode(enc['cipher_text'])
-            nonce = b64decode(enc['nonce'])
-            tag = b64decode(enc['tag'])
-
-            # generate the private key from the password and salt
-            private_key = hashlib.scrypt(
-                enc_key.encode(), salt=salt, n=2 ** 14, r=8, p=1, dklen=32)
-
-            # create the cipher config
-            cipher = AES.new(private_key, AES.MODE_GCM, nonce=nonce)
-
-            # decrypt the cipher text
-            decrypted = cipher.decrypt_and_verify(cipher_text, tag)
-
-            return decrypted
+        def decrypt_file(file_name, key):
+            with open(file_name, 'rb') as fo:
+                ciphertext = fo.read()
+            dec = decrypt(ciphertext, key)
+            with open(file_name[:-4], 'wb') as fo:
+                fo.write(dec)
 
 
 # DRIVER CODE
