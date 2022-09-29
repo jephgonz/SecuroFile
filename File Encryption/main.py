@@ -4,17 +4,13 @@ import tkinter as tk
 from tkinter import *
 from Crypto import Random
 from Crypto.Cipher import AES
-from cryptography.fernet import Fernet
 import subprocess
 import mysql.connector
 import zipfile
+import os
 
 # GLOBAL VARIABLES
-BLOCK_SIZE = 16
-pad = lambda s: s + (BLOCK_SIZE - len(s) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(s) % BLOCK_SIZE)
-unpad = lambda s: s[:-ord(s[len(s) - 1:])]
 list_files = ['cache/header', 'cache/key', 'cache/enc']
-key = ''
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 FONT = ('Nirmala UI', 16, 'bold')
@@ -25,15 +21,9 @@ def database():
     con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
     cursor = con.cursor()
 
-def genkey():
-    key = Fernet.generate_key()
-    print(key)
-    with open('key', 'wb') as filekey:
-        filekey.write(key)
-
 def regdev(current_machine_id):
     database()
-    print(current_machine_id)
+    print("Current Device ID: " + str(current_machine_id))
     query = "select * from devices"
     cursor.execute(query)
     table = cursor.fetchall()
@@ -86,7 +76,6 @@ class tkinterApp(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
-
 # LOGIN
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -117,8 +106,8 @@ class StartPage(tk.Frame):
 
         def login_user(EMAIL, PASS, lbl_result):
             database()
-            print(EMAIL)
-            print(PASS)
+            print("Email: " + str(EMAIL))
+            print("Password: " + str(PASS))
             hashed = ""
             if EMAIL == "" or PASS == "":
                 lbl_result.config(text="Please complete the required field!", fg="orange")
@@ -131,17 +120,16 @@ class StartPage(tk.Frame):
                     table2 = cursor.fetchall()
                     for row2 in table2:
                         hashed = row2[5]
-                        print(row2[5])
+                        print("PW Hash: " + str(row2[5]))
                         global user_id
                         user_id = row2[0]
-                        print(user_id)
+                        print("User ID: " + str(user_id))
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
                         controller.show_frame(Page2)
                     else:
                         lbl_result.config(text="Password incorrect", fg="red")
                 else:
                     lbl_result.config(text="Email not registered", fg="red")
-
 
 # REGISTER
 class Page1(tk.Frame):
@@ -216,7 +204,6 @@ class Page1(tk.Frame):
                 else:
                     lbl_result.config(text="Password does not match!", fg="red")
 
-
 # MAIN APP
 class Page2(tk.Frame):
     def __init__(self, parent, controller):
@@ -224,15 +211,12 @@ class Page2(tk.Frame):
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
-        btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file()),
+        btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file('links.txt', key)),
                              fg="#FFFFFF", bg="#4ECDC4")
         btn_encrypt.grid(row=1, columnspan=2)
-        btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file()),
+        btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file('links.txt.enc', key)),
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=2, columnspan=2)
-
-        # GENERATE KEY FOR FILE
-        genkey()
 
         def pad(s):
             return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
@@ -243,6 +227,12 @@ class Page2(tk.Frame):
             cipher = AES.new(key, AES.MODE_CBC, iv)
             return iv + cipher.encrypt(message)
 
+        def decrypt(ciphertext, key):
+            iv = ciphertext[:AES.block_size]
+            cipher = AES.new(key, AES.MODE_CBC, iv)
+            plaintext = cipher.decrypt(ciphertext[AES.block_size:])
+            return plaintext.rstrip(b"\0")
+
         def encrypt_file(file_name, key):
             with open(file_name, 'rb') as fo:
                 plaintext = fo.read()
@@ -250,18 +240,17 @@ class Page2(tk.Frame):
             with open(file_name + ".enc", 'wb') as fo:
                 fo.write(enc)
 
-        def decrypt(ciphertext, key):
-            iv = ciphertext[:AES.block_size]
-            cipher = AES.new(key, AES.MODE_CBC, iv)
-            plaintext = cipher.decrypt(ciphertext[AES.block_size:])
-            return plaintext.rstrip(b"\0")
-
         def decrypt_file(file_name, key):
             with open(file_name, 'rb') as fo:
                 ciphertext = fo.read()
             dec = decrypt(ciphertext, key)
             with open(file_name[:-4], 'wb') as fo:
                 fo.write(dec)
+
+        key = os.urandom(24)
+        print("Generated Key: " + str(key))
+        with open('key', 'wb') as filekey:
+            filekey.write(key)
 
 # DRIVER CODE
 app = tkinterApp()
