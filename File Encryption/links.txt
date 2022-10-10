@@ -1,1 +1,2 @@
 https://stackoverflow.com/questions/20852664/python-pycrypto-encrypt-decrypt-text-files-with-aes
+https://www.youtube.com/watch?v=Ea1LjAyqBs4&ab_channel=PythonProgrammi
