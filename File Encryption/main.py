@@ -11,7 +11,7 @@ import zipfile
 import os
 
 # GLOBAL VARIABLES
-list_files = ['cache/encrypted/filename', 'cache/encrypted/key', 'cache/encrypted/enc']
+list_files = ['cache/filename', 'cache/key', 'cache/enc']
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 FONT = ('Nirmala UI', 16, 'bold')
@@ -191,7 +191,7 @@ class Page2(tk.Frame):
         btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file(key)),
                              fg="#FFFFFF", bg="#4ECDC4")
         btn_encrypt.grid(row=1, columnspan=2)
-        btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file('links.txt.enc', key)),
+        btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file()),
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=2, columnspan=2)
 
@@ -224,6 +224,10 @@ class Page2(tk.Frame):
                 for file in list_files:
                     zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
+        def extractenc(file_path):
+            with zipfile.ZipFile(file_path, mode="r") as archive:
+                archive.extractall("")
+
         def pad(s):
             return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
 
@@ -249,22 +253,37 @@ class Page2(tk.Frame):
             with open(file_path, 'rb') as fo:
                 plaintext = fo.read()
             enc = encrypt(plaintext, key)
-            with open('cache/encrypted/filename', 'wb') as filename:
+            with open('cache/filename', 'wb') as filename:
                 filename.write(tail.encode())
-            with open("cache/encrypted/enc", 'wb') as fo:
+            with open("cache/enc", 'wb') as fo:
                 fo.write(enc)
             compressenc(root)
+            print("Succesfully Encrypted!")
 
-        def decrypt_file(file_name, key):
-            with open(file_name, 'rb') as fo:
-                ciphertext = fo.read()
-            dec = decrypt(ciphertext, key)
-            with open("cache/decrypted/" + file_name[:-4], 'wb') as fo:
+        def decrypt_file():
+            file_path = filedialog.askopenfilename()
+            head, tail = os.path.split(file_path)
+            root, ext = os.path.splitext(tail)
+            print("File Name: " + str(tail))
+            print("File Directory: " + str(head))
+            print("File Path: " + str(file_path))
+            extractenc(file_path)
+            with open("cache/enc", 'rb') as fo1:
+                ciphertext = fo1.read()
+            with open("cache/key", 'rb') as fo2:
+                fkey = fo2.read()
+                print("Key: " + str(fkey))
+            with open("cache/filename", 'rb') as fo3:
+                file_name = fo3.read()
+                print("File Name: " + str(file_name))
+            dec = decrypt(ciphertext, fkey)
+            file = file_name
+            with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
                 fo.write(dec)
 
         key = os.urandom(24)
         print("Generated Key: " + str(key))
-        with open('cache/encrypted/key', 'wb') as filekey:
+        with open('cache/key', 'wb') as filekey:
             filekey.write(key)
 
 # DRIVER CODE
