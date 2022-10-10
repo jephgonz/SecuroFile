@@ -1,6 +1,7 @@
 # LIBRARIES
 import bcrypt
 import tkinter as tk
+from tkinter import filedialog
 from tkinter import *
 from Crypto import Random
 from Crypto.Cipher import AES
@@ -10,7 +11,7 @@ import zipfile
 import os
 
 # GLOBAL VARIABLES
-list_files = ['cache/header', 'cache/key', 'cache/enc']
+list_files = ['cache/encrypted/filename', 'cache/encrypted/key', 'cache/encrypted/enc']
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 FONT = ('Nirmala UI', 16, 'bold')
@@ -21,25 +22,6 @@ def database():
     con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
     cursor = con.cursor()
 
-def regdev(current_machine_id):
-    database()
-    print("Current Device ID: " + str(current_machine_id))
-    query = "select * from devices"
-    cursor.execute(query)
-    table = cursor.fetchall()
-    match = 0
-    for row in table:
-        if current_machine_id == str(row[2]):
-            match = 1
-            print("Device already exist.")
-            break
-    if match == 0:
-        sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
-        val = ("" + user_id + "", "" + current_machine_id + "")
-        cursor.execute(sql, val)
-        con.commit()
-        print("Device registered successfully.")
-
 def updateDevStat(devId, status):
     if status == "Active":
         status = "Active"
@@ -48,11 +30,6 @@ def updateDevStat(devId, status):
     sql = "UPDATE `devices` SET `date_modified` = CURRENT_TIMESTAMP, `status` = '" + status + "' WHERE `devices`. `dev_id` = " + devId + ""
     cursor.execute(sql)
     con.commit()
-
-def compressenc(file_name):
-    with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
-        for file in list_files:
-            zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
 # TKINTER INIT
 class tkinterApp(tk.Tk):
@@ -211,12 +188,41 @@ class Page2(tk.Frame):
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
-        btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file('links.txt', key)),
+        btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file(key)),
                              fg="#FFFFFF", bg="#4ECDC4")
         btn_encrypt.grid(row=1, columnspan=2)
         btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file('links.txt.enc', key)),
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=2, columnspan=2)
+
+        btn_decrypt = Button(frame, font=FONT, text="REGISTER DEVICE", state=NORMAL,
+                             command=lambda: (regdev(current_machine_id)),
+                             fg="#FFFFFF", bg="#FF6B6B")
+        btn_decrypt.grid(row=3, columnspan=2)
+
+        def regdev(current_machine_id):
+            database()
+            print("Current Device ID: " + str(current_machine_id))
+            query = "select * from devices"
+            cursor.execute(query)
+            table = cursor.fetchall()
+            match = 0
+            for row in table:
+                if current_machine_id == str(row[2]):
+                    match = 1
+                    print("Device already exist.")
+                    break
+            if match == 0:
+                sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
+                val = ("" + str(user_id) + "", "" + current_machine_id + "")
+                cursor.execute(sql, val)
+                con.commit()
+                print("Device registered successfully.")\
+
+        def compressenc(file_name):
+            with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
+                for file in list_files:
+                    zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
         def pad(s):
             return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
@@ -233,23 +239,32 @@ class Page2(tk.Frame):
             plaintext = cipher.decrypt(ciphertext[AES.block_size:])
             return plaintext.rstrip(b"\0")
 
-        def encrypt_file(file_name, key):
-            with open(file_name, 'rb') as fo:
+        def encrypt_file(key):
+            file_path = filedialog.askopenfilename()
+            head, tail = os.path.split(file_path)
+            root, ext = os.path.splitext(tail)
+            print("File Name: " + str(tail))
+            print("File Directory: " + str(head))
+            print("File Path: " + str(file_path))
+            with open(file_path, 'rb') as fo:
                 plaintext = fo.read()
             enc = encrypt(plaintext, key)
-            with open(file_name + ".enc", 'wb') as fo:
+            with open('cache/encrypted/filename', 'wb') as filename:
+                filename.write(tail.encode())
+            with open("cache/encrypted/enc", 'wb') as fo:
                 fo.write(enc)
+            compressenc(root)
 
         def decrypt_file(file_name, key):
             with open(file_name, 'rb') as fo:
                 ciphertext = fo.read()
             dec = decrypt(ciphertext, key)
-            with open(file_name[:-4], 'wb') as fo:
+            with open("cache/decrypted/" + file_name[:-4], 'wb') as fo:
                 fo.write(dec)
 
         key = os.urandom(24)
         print("Generated Key: " + str(key))
-        with open('key', 'wb') as filekey:
+        with open('cache/encrypted/key', 'wb') as filekey:
             filekey.write(key)
 
 # DRIVER CODE
