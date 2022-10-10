@@ -263,7 +263,6 @@ class Page2(tk.Frame):
         def decrypt_file():
             file_path = filedialog.askopenfilename()
             head, tail = os.path.split(file_path)
-            root, ext = os.path.splitext(tail)
             print("File Name: " + str(tail))
             print("File Directory: " + str(head))
             print("File Path: " + str(file_path))
@@ -280,6 +279,7 @@ class Page2(tk.Frame):
             file = file_name
             with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
                 fo.write(dec)
+            print("Succesfully Decrypted!")
 
         key = os.urandom(24)
         print("Generated Key: " + str(key))
