@@ -21,18 +21,18 @@ FONT = ('Nirmala UI', 16, 'bold')
 file_sig = 'securofile'
 file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
-string = file_sig_en
-print("the string is:", string)
-in_bytes = bytes(string, "utf-8")
-print("string to byte:", in_bytes)
-hex_bytes = binascii.hexlify(in_bytes)
-print("hexlify converts the data to hexdecimal value :", hex_bytes)
-hex_str = hex_bytes.decode("ascii")
-print("This is the converted hex value:", hex_str)
-# To convert hex to bytes
-y=binascii.unhexlify(hex_str)
-# unhexlify converts hex value to bytes.
-print("This is the converts hex value to bytes:", y)
+# string = file_sig_en
+# print("the string is:", string)
+# in_bytes = bytes(string, "utf-8")
+# print("string to byte:", in_bytes)
+# hex_bytes = binascii.hexlify(in_bytes)
+# print("hexlify converts the data to hexdecimal value :", hex_bytes)
+# hex_str = hex_bytes.decode("ascii")
+# print("This is the converted hex value:", hex_str)
+# # To convert hex to bytes
+# y=binascii.unhexlify(hex_str)
+# # unhexlify converts hex value to bytes.
+# print("This is the converts hex value to bytes:", y)
 
 string=file_sig_en
 print("String to be converted :",string)
@@ -41,7 +41,10 @@ print("Converted to hex:",file_sig_en_in_hex)
 file_sig_en_in_bytes = file_sig_en_in_hex.hex()
 print("Converted to bytes:",file_sig_en_in_bytes)
 file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
-print("Converted to true value:",file_sig_en_true.decode("utf-16"))
+file_sig_en_true_de = file_sig_en_true.decode("utf-16")
+print("Converted to true value:",file_sig_en_true_de)
+file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
+print("Converted true value to bytes:",file_sig_en_true_bytes)
 
 # GLOBAL FUNCTIONS
 def database():
@@ -260,10 +263,14 @@ class Page2(tk.Frame):
 
             #BYTE FORMAT
             tow = plaintext.hex()
+            newtow = file_sig_en_in_bytes + tow
 
             #HEX FORMAT
-            tow2=bytes.fromhex(tow)
+            tow2=bytes.fromhex(newtow)
             print(tow2)
+
+            with open("test.zip", 'wb') as writeenc:
+                writeenc.write(tow2)
 
         def encrypt_file(key):
             file_path = filedialog.askopenfilename()
