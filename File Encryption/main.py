@@ -1,5 +1,6 @@
 # LIBRARIES
 import bcrypt
+import binascii
 import tkinter as tk
 from tkinter import filedialog
 from tkinter import *
@@ -15,10 +16,32 @@ list_files = ['cache/filename', 'cache/key', 'cache/enc']
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 FONT = ('Nirmala UI', 16, 'bold')
+
+# FILE HEADER SIGNATURE
 file_sig = 'securofile'
-file_sig_en = ''
-file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt())
-print(file_sig_en)
+file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
+
+string = file_sig_en
+print("the string is:", string)
+in_bytes = bytes(string, "utf-8")
+print("string to byte:", in_bytes)
+hex_bytes = binascii.hexlify(in_bytes)
+print("hexlify converts the data to hexdecimal value :", hex_bytes)
+hex_str = hex_bytes.decode("ascii")
+print("This is the converted hex value:", hex_str)
+# To convert hex to bytes
+y=binascii.unhexlify(hex_str)
+# unhexlify converts hex value to bytes.
+print("This is the converts hex value to bytes:", y)
+
+string=file_sig_en
+print("String to be converted :",string)
+file_sig_en_in_hex=bytes(string,"utf-16")
+print("Converted to hex:",file_sig_en_in_hex)
+file_sig_en_in_bytes = file_sig_en_in_hex.hex()
+print("Converted to bytes:",file_sig_en_in_bytes)
+file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
+print("Converted to true value:",file_sig_en_true.decode("utf-16"))
 
 # GLOBAL FUNCTIONS
 def database():
@@ -231,6 +254,16 @@ class Page2(tk.Frame):
             cipher = AES.new(key, AES.MODE_CBC, iv)
             plaintext = cipher.decrypt(ciphertext[AES.block_size:])
             return plaintext.rstrip(b"\0")
+        def fheadwrite(file_name):
+            with open('encrypted/' + file_name + '.enc', 'rb') as fo:
+                plaintext = fo.read()
+
+            #BYTE FORMAT
+            tow = plaintext.hex()
+
+            #HEX FORMAT
+            tow2=bytes.fromhex(tow)
+            print(tow2)
 
         def encrypt_file(key):
             file_path = filedialog.askopenfilename()
@@ -247,6 +280,7 @@ class Page2(tk.Frame):
             with open("cache/enc", 'wb') as fo:
                 fo.write(enc)
             compressenc(root)
+            fheadwrite(root)
             print("Succesfully Encrypted!")
 
         def decrypt_file():
