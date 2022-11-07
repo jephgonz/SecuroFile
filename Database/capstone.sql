@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Sep 04, 2022 at 08:58 AM
+-- Generation Time: Nov 07, 2022 at 02:25 AM
 -- Server version: 5.7.33
--- PHP Version: 7.4.19
+-- PHP Version: 8.1.8
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -31,17 +31,15 @@ CREATE TABLE `devices` (
   `dev_id` int(45) NOT NULL,
   `user_id` int(45) NOT NULL,
   `deviceID` varchar(45) NOT NULL,
-  `date_registered` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `date_modified` datetime DEFAULT NULL,
-  `status` varchar(10) NOT NULL DEFAULT 'Inactive'
+  `date_registered` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `devices`
 --
 
-INSERT INTO `devices` (`dev_id`, `user_id`, `deviceID`, `date_registered`, `date_modified`, `status`) VALUES
-(8, 1, '03000200-0400-0500-0006-000700080009', '2022-08-29 13:07:20', '2022-09-04 16:54:05', 'Inactive');
+INSERT INTO `devices` (`dev_id`, `user_id`, `deviceID`, `date_registered`) VALUES
+(10, 1, '573E09AB-E320-11E7-8A95-54E1ADF66EE4', '2022-11-07 10:24:46');
 
 -- --------------------------------------------------------
 
@@ -113,13 +111,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `devices`
 --
 ALTER TABLE `devices`
-  MODIFY `dev_id` int(45) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `dev_id` int(45) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(45) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `user_id` int(45) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables

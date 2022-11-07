@@ -15,21 +15,16 @@ list_files = ['cache/filename', 'cache/key', 'cache/enc']
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 FONT = ('Nirmala UI', 16, 'bold')
+file_sig = 'securofile'
+file_sig_en = ''
+file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt())
+print(file_sig_en)
 
 # GLOBAL FUNCTIONS
 def database():
     global con, cursor
     con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
     cursor = con.cursor()
-
-def updateDevStat(devId, status):
-    if status == "Active":
-        status = "Active"
-    else:
-        status = "Inactive"
-    sql = "UPDATE `devices` SET `date_modified` = CURRENT_TIMESTAMP, `status` = '" + status + "' WHERE `devices`. `dev_id` = " + devId + ""
-    cursor.execute(sql)
-    con.commit()
 
 # TKINTER INIT
 class tkinterApp(tk.Tk):
