@@ -260,15 +260,14 @@ class Page2(tk.Frame):
         def fheadwrite(file_name):
             with open('encrypted/' + file_name + '.enc', 'rb') as fo:
                 plaintext = fo.read()
-
-            #BYTE FORMAT
             tow = plaintext.hex()
             newtow = file_sig_en_in_bytes + tow
-
-            #HEX FORMAT
-            tow2=bytes.fromhex(newtow)
-            print(tow2)
-
+            b = newtow[244:-2]
+            c = newtow[0:244]
+            d = binascii.unhexlify(c)
+            e = d.decode("utf-16")
+            print(e)
+            tow2=bytes.fromhex(b)
             with open("test.zip", 'wb') as writeenc:
                 writeenc.write(tow2)
 
