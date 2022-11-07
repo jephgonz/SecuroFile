@@ -74,11 +74,9 @@ class StartPage(tk.Frame):
         pass1.grid(row=3, column=1)
         lbl_result = Label(frame, text="", font=FONT, fg="#FFFFFF", bg="#292F36")
         lbl_result.grid(row=4, columnspan=2)
-        btn_login = Button(frame, font=FONT, text="Login",
-                           command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#4ECDC4")
+        btn_login = Button(frame, font=FONT, text="Login", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#4ECDC4")
         btn_login.grid(row=5, columnspan=2)
-        button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF",
-                         bg="#FF6B6B")
+        button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF", bg="#FF6B6B")
         button2.grid(row=6, columnspan=2)
 
         def login_user(EMAIL, PASS, lbl_result):
@@ -149,13 +147,9 @@ class Page1(tk.Frame):
         pass1.grid(row=6, column=1)
         rpass1 = Entry(frame, font=FONT, textvariable=RPASS, width=14, show="*")
         rpass1.grid(row=7, column=1)
-        btn_register = Button(frame, font=FONT, text="Register", state=NORMAL,
-                              command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(),
-                                                            PASS.get(), RPASS.get(), lbl_result, btn_register),
-                              fg="#FFFFFF", bg="#4ECDC4")
+        btn_register = Button(frame, font=FONT, text="Register", state=NORMAL, command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(), PASS.get(), RPASS.get(), lbl_result, btn_register), fg="#FFFFFF", bg="#4ECDC4")
         btn_register.grid(row=9, columnspan=2)
-        button2 = Button(frame, font=FONT, text="Login", command=lambda: controller.show_frame(StartPage), fg="#FFFFFF",
-                         bg="#FF6B6B")
+        button2 = Button(frame, font=FONT, text="Login", command=lambda: controller.show_frame(StartPage), fg="#FFFFFF", bg="#FF6B6B")
         button2.grid(row=10, columnspan=2)
 
         def register_user(FNAME, MNAME, LNAME, EMAIL, PASS, RPASS, lbl_result, btn_register):
