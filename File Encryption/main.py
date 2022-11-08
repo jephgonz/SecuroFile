@@ -18,8 +18,21 @@ current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'ut
 FONT = ('Nirmala UI', 16, 'bold')
 
 # FILE HEADER SIGNATURE
-file_sig = 'securofile'
+uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
+file_sig = '$securofile$'
 file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
+
+string=file_sig_en
+print("String to be converted :",string)
+file_sig_en_in_hex=bytes(string,"utf-16")
+print("Converted to hex:",file_sig_en_in_hex)
+file_sig_en_in_bytes = file_sig_en_in_hex.hex()
+print("Converted to bytes:",file_sig_en_in_bytes)
+file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
+file_sig_en_true_de = file_sig_en_true.decode("utf-16")
+print("Converted to true value:",file_sig_en_true_de)
+file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
+print("Converted true value to bytes:",file_sig_en_true_bytes)
 
 # string = file_sig_en
 # print("the string is:", string)
@@ -33,18 +46,6 @@ file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 # y=binascii.unhexlify(hex_str)
 # # unhexlify converts hex value to bytes.
 # print("This is the converts hex value to bytes:", y)
-
-string=file_sig_en
-print("String to be converted :",string)
-file_sig_en_in_hex=bytes(string,"utf-16")
-print("Converted to hex:",file_sig_en_in_hex)
-file_sig_en_in_bytes = file_sig_en_in_hex.hex()
-print("Converted to bytes:",file_sig_en_in_bytes)
-file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
-file_sig_en_true_de = file_sig_en_true.decode("utf-16")
-print("Converted to true value:",file_sig_en_true_de)
-file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
-print("Converted true value to bytes:",file_sig_en_true_bytes)
 
 # GLOBAL FUNCTIONS
 def database():
@@ -268,8 +269,22 @@ class Page2(tk.Frame):
             e = d.decode("utf-16")
             print(e)
             tow2=bytes.fromhex(b)
-            with open("test.zip", 'wb') as writeenc:
+            newtow2 = bytes.fromhex(newtow)
+            enc2 = encrypt(newtow2,uni_key)
+            with open("ZIP NO FILE SIG.zip", 'wb') as writeenc:
                 writeenc.write(tow2)
+            with open("FILE SIG AND ENCRYPTED.enc", 'wb') as writeenc:
+                writeenc.write(enc2)
+            with open("FILE SIG AND ENCRYPTED.enc", 'rb') as fo:
+                encdata = fo.read()
+            dec = decrypt(encdata, uni_key)
+            with open("WITH FILE SIG ONLY.enc", 'wb') as writeenc:
+                writeenc.write(dec)
+            with open("WITH FILE SIG ONLY.enc", 'rb') as fo:
+                newtow2 = fo.read()
+            h = newtow2[244:-2]
+            with open("ZIP NO FILE SIG PROCESSED.zip", 'wb') as writeenc:
+                writeenc.write(h)
 
         def encrypt_file(key):
             file_path = filedialog.askopenfilename()
