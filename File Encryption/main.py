@@ -27,21 +27,22 @@ uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
 file_sig = '$securofile$'
 file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
-string=file_sig_en
-print("String to be converted :",string)
+string = file_sig_en
+print("String to be converted :", string)
 
-file_sig_en_in_hex=bytes(string,"utf-16")
-print("Converted to hex:",file_sig_en_in_hex)
+file_sig_en_in_hex = bytes(string, "utf-16")
+print("Converted to hex:", file_sig_en_in_hex)
 
 file_sig_en_in_bytes = file_sig_en_in_hex.hex()
-print("Converted to bytes:",file_sig_en_in_bytes)
+print("Converted to bytes:", file_sig_en_in_bytes)
 
 file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
 file_sig_en_true_de = file_sig_en_true.decode("utf-16")
-print("Converted to true value:",file_sig_en_true_de)
+print("Converted to true value:", file_sig_en_true_de)
 
 file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
-print("Converted true value to bytes:",file_sig_en_true_bytes)
+print("Converted true value to bytes:", file_sig_en_true_bytes)
+
 
 # string = file_sig_en
 # print("the string is:", string)
@@ -61,6 +62,7 @@ def database():
     global con, cursor
     con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
     cursor = con.cursor()
+
 
 # TKINTER INIT
 class tkinterApp(tk.Tk):
@@ -84,6 +86,7 @@ class tkinterApp(tk.Tk):
         frame = self.frames[cont]
         frame.tkraise()
 
+
 # LOGIN
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -105,9 +108,11 @@ class StartPage(tk.Frame):
         pass1.grid(row=3, column=1)
         lbl_result = Label(frame, text="", font=FONT, fg="#FFFFFF", bg="#292F36")
         lbl_result.grid(row=4, columnspan=2)
-        btn_login = Button(frame, font=FONT, text="Login", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#4ECDC4")
+        btn_login = Button(frame, font=FONT, text="Login",
+                           command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#4ECDC4")
         btn_login.grid(row=5, columnspan=2)
-        button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF", bg="#FF6B6B")
+        button2 = Button(frame, font=FONT, text="Register", command=lambda: controller.show_frame(Page1), fg="#FFFFFF",
+                         bg="#FF6B6B")
         button2.grid(row=6, columnspan=2)
 
         def login_user(EMAIL, PASS, lbl_result):
@@ -136,6 +141,7 @@ class StartPage(tk.Frame):
                         lbl_result.config(text="Password incorrect", fg="red")
                 else:
                     lbl_result.config(text="Email not registered", fg="red")
+
 
 # REGISTER
 class Page1(tk.Frame):
@@ -178,9 +184,13 @@ class Page1(tk.Frame):
         pass1.grid(row=6, column=1)
         rpass1 = Entry(frame, font=FONT, textvariable=RPASS, width=14, show="*")
         rpass1.grid(row=7, column=1)
-        btn_register = Button(frame, font=FONT, text="Register", state=NORMAL, command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(), PASS.get(), RPASS.get(), lbl_result, btn_register), fg="#FFFFFF", bg="#4ECDC4")
+        btn_register = Button(frame, font=FONT, text="Register", state=NORMAL,
+                              command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(),
+                                                            PASS.get(), RPASS.get(), lbl_result, btn_register),
+                              fg="#FFFFFF", bg="#4ECDC4")
         btn_register.grid(row=9, columnspan=2)
-        button2 = Button(frame, font=FONT, text="Login", command=lambda: controller.show_frame(StartPage), fg="#FFFFFF", bg="#FF6B6B")
+        button2 = Button(frame, font=FONT, text="Login", command=lambda: controller.show_frame(StartPage), fg="#FFFFFF",
+                         bg="#FF6B6B")
         button2.grid(row=10, columnspan=2)
 
         def register_user(FNAME, MNAME, LNAME, EMAIL, PASS, RPASS, lbl_result, btn_register):
@@ -206,6 +216,7 @@ class Page1(tk.Frame):
                 else:
                     lbl_result.config(text="Password does not match!", fg="red")
 
+
 # MAIN APP
 class Page2(tk.Frame):
     def __init__(self, parent, controller):
@@ -227,12 +238,12 @@ class Page2(tk.Frame):
 
         listbox = Listbox(frame)
         listbox.grid(row=4, columnspan=2)
-        listbox.insert(1,"sample")
+        listbox.insert(1, "sample")
 
         entrybox = Entry(frame)
         entrybox.grid(row=5, columnspan=2)
 
-        submitButton = Button(frame, font=FONT,text="submit", state=NORMAL, command=lambda: (submit()))
+        submitButton = Button(frame, font=FONT, text="submit", state=NORMAL, command=lambda: (submit()))
         submitButton.grid(row=6, columnspan=2)
         addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
         addButton.grid(row=7, columnspan=2)
@@ -254,10 +265,10 @@ class Page2(tk.Frame):
 
         def delete():
             try:
-                listbox.delete(listbox.delete(listbox.curselection()))
                 print("You deleted: " + listbox.get(listbox.curselection()))
+                listbox.delete(listbox.delete(listbox.curselection()))
             except:
-                print("No item selected")
+                print("No item selected/Process done")
 
         def regdev(current_machine_id):
             database()
@@ -276,7 +287,7 @@ class Page2(tk.Frame):
                 val = ("" + str(user_id) + "", "" + current_machine_id + "")
                 cursor.execute(sql, val)
                 con.commit()
-                print("Device registered successfully.")\
+                print("Device registered successfully.")
 
         def compressenc(file_name):
             with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
@@ -301,6 +312,7 @@ class Page2(tk.Frame):
             cipher = AES.new(key, AES.MODE_CBC, iv)
             plaintext = cipher.decrypt(ciphertext[AES.block_size:])
             return plaintext.rstrip(b"\0")
+
         def fheadwrite(file_name):
             with open('encrypted/' + file_name + '.enc', 'rb') as fo:
                 plaintext = fo.read()
@@ -311,9 +323,9 @@ class Page2(tk.Frame):
             d = binascii.unhexlify(c)
             e = d.decode("utf-16")
             print(e)
-            tow2=bytes.fromhex(b)
+            tow2 = bytes.fromhex(b)
             newtow2 = bytes.fromhex(newtow)
-            enc2 = encrypt(newtow2,uni_key)
+            enc2 = encrypt(newtow2, uni_key)
             with open("ZIP NO FILE SIG.zip", 'wb') as writeenc:
                 writeenc.write(tow2)
             with open("FILE SIG AND ENCRYPTED.enc", 'wb') as writeenc:
@@ -344,7 +356,7 @@ class Page2(tk.Frame):
             with open("cache/enc", 'wb') as fo:
                 fo.write(enc)
             compressenc(root)
-            #fheadwrite(root)
+            # fheadwrite(root)
             print("Succesfully Encrypted!")
 
         def decrypt_file():
@@ -372,6 +384,7 @@ class Page2(tk.Frame):
         print("Generated Key: " + str(key))
         with open('cache/key', 'wb') as filekey:
             filekey.write(key)
+
 
 # DRIVER CODE
 app = tkinterApp()
