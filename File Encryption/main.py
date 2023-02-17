@@ -10,6 +10,11 @@ import subprocess
 import mysql.connector
 import zipfile
 import os
+import re
+
+# Make a regular expression
+# for validating an Email
+regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
 # GLOBAL VARIABLES
 list_files = ['cache/filename', 'cache/key', 'cache/enc']
@@ -235,13 +240,24 @@ class Page2(tk.Frame):
         delButton.grid(row=8, columnspan=2)
 
         def submit():
-            print("You selected: " + listbox.get(listbox.curselection()))
+            try:
+                print("You selected: " + listbox.get(listbox.curselection()))
+            except:
+                print("No item selected")
 
         def add():
-            listbox.insert(listbox.size(), entrybox.get())
+            if re.fullmatch(regex, entrybox.get()):
+                listbox.insert(listbox.size(), entrybox.get())
+                print("Email added")
+            else:
+                print("Invalid Email")
 
         def delete():
-            listbox.delete(listbox.delete(listbox.curselection()))
+            try:
+                listbox.delete(listbox.delete(listbox.curselection()))
+                print("You deleted: " + listbox.get(listbox.curselection()))
+            except:
+                print("No item selected")
 
         def regdev(current_machine_id):
             database()
