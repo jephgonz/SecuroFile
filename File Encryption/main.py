@@ -24,13 +24,17 @@ file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
 string=file_sig_en
 print("String to be converted :",string)
+
 file_sig_en_in_hex=bytes(string,"utf-16")
 print("Converted to hex:",file_sig_en_in_hex)
+
 file_sig_en_in_bytes = file_sig_en_in_hex.hex()
 print("Converted to bytes:",file_sig_en_in_bytes)
+
 file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
 file_sig_en_true_de = file_sig_en_true.decode("utf-16")
 print("Converted to true value:",file_sig_en_true_de)
+
 file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
 print("Converted true value to bytes:",file_sig_en_true_bytes)
 
@@ -216,6 +220,29 @@ class Page2(tk.Frame):
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=3, columnspan=2)
 
+        listbox = Listbox(frame)
+        listbox.grid(row=4, columnspan=2)
+        listbox.insert(1,"sample")
+
+        entrybox = Entry(frame)
+        entrybox.grid(row=5, columnspan=2)
+
+        submitButton = Button(frame, font=FONT,text="submit", state=NORMAL, command=lambda: (submit()))
+        submitButton.grid(row=6, columnspan=2)
+        addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
+        addButton.grid(row=7, columnspan=2)
+        delButton = Button(frame, font=FONT, text="delete", state=NORMAL, command=lambda: (delete()))
+        delButton.grid(row=8, columnspan=2)
+
+        def submit():
+            print("You selected: " + listbox.get(listbox.curselection()))
+
+        def add():
+            listbox.insert(listbox.size(), entrybox.get())
+
+        def delete():
+            listbox.delete(listbox.delete(listbox.curselection()))
+
         def regdev(current_machine_id):
             database()
             print("Current Device ID: " + str(current_machine_id))
@@ -301,7 +328,7 @@ class Page2(tk.Frame):
             with open("cache/enc", 'wb') as fo:
                 fo.write(enc)
             compressenc(root)
-            fheadwrite(root)
+            #fheadwrite(root)
             print("Succesfully Encrypted!")
 
         def decrypt_file():
