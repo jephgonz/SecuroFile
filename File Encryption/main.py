@@ -17,9 +17,10 @@ import re
 regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 
 # GLOBAL VARIABLES
-list_files = ['cache/filename', 'cache/key', 'cache/enc']
+list_files = ['cache/filename', 'cache/key', 'cache/enc', 'cache/recipient']
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
+current_email_logged = ''
 FONT = ('Nirmala UI', 16, 'bold')
 
 # FILE HEADER SIGNATURE
@@ -76,7 +77,7 @@ class tkinterApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (StartPage, Page1, Page2):
+        for F in (StartPage, Page1, Page2, Page3):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -136,6 +137,8 @@ class StartPage(tk.Frame):
                         user_id = row2[0]
                         print("User ID: " + str(user_id))
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
+                        global current_email_logged
+                        current_email_logged = str(EMAIL)
                         controller.show_frame(Page2)
                     else:
                         lbl_result.config(text="Password incorrect", fg="red")
@@ -224,6 +227,7 @@ class Page2(tk.Frame):
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
+
         btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file(key)),
                              fg="#FFFFFF", bg="#4ECDC4")
         btn_encrypt.grid(row=1, columnspan=2)
@@ -231,63 +235,44 @@ class Page2(tk.Frame):
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=2, columnspan=2)
 
-        btn_decrypt = Button(frame, font=FONT, text="REGISTER DEVICE", state=NORMAL,
-                             command=lambda: (regdev(current_machine_id)),
-                             fg="#FFFFFF", bg="#FF6B6B")
-        btn_decrypt.grid(row=3, columnspan=2)
-
-        listbox = Listbox(frame)
+        listbox = Listbox(frame,selectmode=MULTIPLE)
         listbox.grid(row=4, columnspan=2)
-        listbox.insert(1, "sample")
 
-        entrybox = Entry(frame)
-        entrybox.grid(row=5, columnspan=2)
+        # Using readlines()
+        file1 = open('user/contacts.txt', 'r')
+        Lines = file1.readlines()
 
-        submitButton = Button(frame, font=FONT, text="submit", state=NORMAL, command=lambda: (submit()))
-        submitButton.grid(row=6, columnspan=2)
-        addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
-        addButton.grid(row=7, columnspan=2)
-        delButton = Button(frame, font=FONT, text="delete", state=NORMAL, command=lambda: (delete()))
-        delButton.grid(row=8, columnspan=2)
+        count = 0
+        # Strips the newline character
+        for line in Lines:
+            count += 1
+            listbox.insert(count,line.strip())
 
-        def submit():
-            try:
-                print("You selected: " + listbox.get(listbox.curselection()))
-            except:
-                print("No item selected")
+        reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
+        reButton.grid(row=6, columnspan=2)
 
-        def add():
-            if re.fullmatch(regex, entrybox.get()):
-                listbox.insert(listbox.size(), entrybox.get())
-                print("Email added")
-            else:
-                print("Invalid Email")
+        buttonset = Button(frame, font=FONT, text="Settings", command=lambda: controller.show_frame(Page3),
+                           fg="#FFFFFF",
+                           bg="#FF6B6B")
+        buttonset.grid(row=8, columnspan=2)
 
-        def delete():
-            try:
-                print("You deleted: " + listbox.get(listbox.curselection()))
-                listbox.delete(listbox.delete(listbox.curselection()))
-            except:
-                print("No item selected/Process done")
+        buttonlogout = Button(frame, font=FONT, text="Log Out", command=lambda: controller.show_frame(StartPage),
+                           fg="#FFFFFF",
+                           bg="#FF6B6B")
+        buttonlogout.grid(row=9, columnspan=2)
 
-        def regdev(current_machine_id):
-            database()
-            print("Current Device ID: " + str(current_machine_id))
-            query = "select * from devices"
-            cursor.execute(query)
-            table = cursor.fetchall()
-            match = 0
-            for row in table:
-                if current_machine_id == str(row[2]):
-                    match = 1
-                    print("Device already exist.")
-                    break
-            if match == 0:
-                sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
-                val = ("" + str(user_id) + "", "" + current_machine_id + "")
-                cursor.execute(sql, val)
-                con.commit()
-                print("Device registered successfully.")
+        def refresh():
+            listbox.delete(0, tk.END)
+            # Using readlines()
+            file1 = open('user/contacts.txt', 'r')
+            Lines = file1.readlines()
+
+            count = 0
+            # Strips the newline character
+            for line in Lines:
+                count += 1
+                listbox.insert(count, line.strip())
+            print("Contacts refreshed")
 
         def compressenc(file_name):
             with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
@@ -342,22 +327,38 @@ class Page2(tk.Frame):
                 writeenc.write(h)
 
         def encrypt_file(key):
-            file_path = filedialog.askopenfilename()
-            head, tail = os.path.split(file_path)
-            root, ext = os.path.splitext(tail)
-            print("File Name: " + str(tail))
-            print("File Directory: " + str(head))
-            print("File Path: " + str(file_path))
-            with open(file_path, 'rb') as fo:
-                plaintext = fo.read()
-            enc = encrypt(plaintext, key)
-            with open('cache/filename', 'wb') as filename:
-                filename.write(tail.encode())
-            with open("cache/enc", 'wb') as fo:
-                fo.write(enc)
-            compressenc(root)
-            # fheadwrite(root)
-            print("Succesfully Encrypted!")
+
+            try:
+                email = []
+
+                for index in listbox.curselection():
+                    email.insert(index,listbox.get(index))
+
+                with open('cache/recipient', 'w') as f:
+                    for line in email:
+                        f.write(line)
+                        f.write('\n')
+                print("Email(s) submitted")
+
+                file_path = filedialog.askopenfilename()
+                head, tail = os.path.split(file_path)
+                root, ext = os.path.splitext(tail)
+                print("File Name: " + str(tail))
+                print("File Directory: " + str(head))
+                print("File Path: " + str(file_path))
+                with open(file_path, 'rb') as fo:
+                    plaintext = fo.read()
+                enc = encrypt(plaintext, key)
+                with open('cache/filename', 'wb') as filename:
+                    filename.write(tail.encode())
+                with open("cache/enc", 'wb') as fo:
+                    fo.write(enc)
+                compressenc(root)
+                # fheadwrite(root)
+                print("Succesfully Encrypted!")
+
+            except:
+                print("No item selected")
 
         def decrypt_file():
             file_path = filedialog.askopenfilename()
@@ -384,6 +385,96 @@ class Page2(tk.Frame):
         print("Generated Key: " + str(key))
         with open('cache/key', 'wb') as filekey:
             filekey.write(key)
+
+
+class Page3(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.configure(bg="#292F36")
+        frame = Frame(self, width=350, height=550, bg="#292F36")
+        frame.place(x=25, y=25)
+
+        listbox = Listbox(frame, selectmode=MULTIPLE)
+        listbox.grid(row=4, columnspan=2)
+
+        # Using readlines()
+        file1 = open('user/contacts.txt', 'r')
+        Lines = file1.readlines()
+
+        count = 0
+        # Strips the newline character
+        for line in Lines:
+            count += 1
+            listbox.insert(count, line.strip())
+
+        entrybox = Entry(frame)
+        entrybox.grid(row=5, columnspan=2)
+
+        addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
+        addButton.grid(row=6, columnspan=2)
+        delButton = Button(frame, font=FONT, text="delete", state=NORMAL, command=lambda: (delete()))
+        delButton.grid(row=7, columnspan=2)
+
+        buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
+                           fg="#FFFFFF",
+                           bg="#FF6B6B")
+        buttonset.grid(row=8, columnspan=2)
+
+        btn_decrypt = Button(frame, font=FONT, text="REGISTER DEVICE", state=NORMAL,
+                             command=lambda: (regdev(current_machine_id)),
+                             fg="#FFFFFF", bg="#FF6B6B")
+        btn_decrypt.grid(row=3, columnspan=2)
+
+        def add():
+            if re.fullmatch(regex, entrybox.get()):
+                listbox.insert(listbox.size(), entrybox.get())
+
+                all_items = listbox.get(0, tk.END)
+
+                with open('user/contacts.txt', 'w') as f:
+                    for line in all_items:
+                        f.write(line)
+                        f.write('\n')
+
+                print("Email added")
+            else:
+                print("Invalid Email")
+
+        def delete():
+            try:
+                print("You deleted: " + listbox.get(listbox.curselection()))
+                listbox.delete(listbox.curselection())
+
+                all_items2 = listbox.get(0, tk.END)
+
+                with open('user/contacts.txt', 'w') as f:
+                    for line in all_items2:
+                        f.write(line)
+                        f.write('\n')
+
+                print("Email deleted")
+
+            except:
+                print("No item selected/Process done")
+
+        def regdev(current_machine_id):
+            database()
+            print("Current Device ID: " + str(current_machine_id))
+            query = "select * from devices"
+            cursor.execute(query)
+            table = cursor.fetchall()
+            match = 0
+            for row in table:
+                if current_machine_id == str(row[2]):
+                    match = 1
+                    print("Device already exist.")
+                    break
+            if match == 0:
+                sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
+                val = ("" + str(user_id) + "", "" + current_machine_id + "")
+                cursor.execute(sql, val)
+                con.commit()
+                print("Device registered successfully.")
 
 
 # DRIVER CODE
