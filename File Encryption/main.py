@@ -1,16 +1,17 @@
 # LIBRARIES
-import bcrypt
 import binascii
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import *
-from Crypto import Random
-from Crypto.Cipher import AES
-import subprocess
-import mysql.connector
-import zipfile
 import os
 import re
+import subprocess
+import tkinter as tk
+import zipfile
+from tkinter import *
+from tkinter import filedialog
+
+import bcrypt
+import mysql.connector
+from Crypto import Random
+from Crypto.Cipher import AES
 
 # Make a regular expression
 # for validating an Email
@@ -20,15 +21,14 @@ regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 list_files = ['cache/filename', 'cache/key', 'cache/enc', 'cache/recipient']
 user_id = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
-current_email_logged = ''
 FONT = ('Nirmala UI', 16, 'bold')
 
 # FILE HEADER SIGNATURE
-uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
+#uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
 file_sig = '$securofile$'
-file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
+#file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
-string = file_sig_en
+string = file_sig
 print("String to be converted :", string)
 
 file_sig_en_in_hex = bytes(string, "utf-16")
@@ -137,8 +137,7 @@ class StartPage(tk.Frame):
                         user_id = row2[0]
                         print("User ID: " + str(user_id))
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
-                        global current_email_logged
-                        current_email_logged = str(EMAIL)
+                        pass1.delete(0, 'end')
                         controller.show_frame(Page2)
                     else:
                         lbl_result.config(text="Password incorrect", fg="red")
@@ -235,7 +234,7 @@ class Page2(tk.Frame):
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=2, columnspan=2)
 
-        listbox = Listbox(frame,selectmode=MULTIPLE)
+        listbox = Listbox(frame, selectmode=MULTIPLE)
         listbox.grid(row=4, columnspan=2)
 
         # Using readlines()
@@ -246,7 +245,7 @@ class Page2(tk.Frame):
         # Strips the newline character
         for line in Lines:
             count += 1
-            listbox.insert(count,line.strip())
+            listbox.insert(count, line.strip())
 
         reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
         reButton.grid(row=6, columnspan=2)
@@ -257,8 +256,8 @@ class Page2(tk.Frame):
         buttonset.grid(row=8, columnspan=2)
 
         buttonlogout = Button(frame, font=FONT, text="Log Out", command=lambda: controller.show_frame(StartPage),
-                           fg="#FFFFFF",
-                           bg="#FF6B6B")
+                              fg="#FFFFFF",
+                              bg="#FF6B6B")
         buttonlogout.grid(row=9, columnspan=2)
 
         def refresh():
@@ -298,41 +297,40 @@ class Page2(tk.Frame):
             plaintext = cipher.decrypt(ciphertext[AES.block_size:])
             return plaintext.rstrip(b"\0")
 
-        def fheadwrite(file_name):
-            with open('encrypted/' + file_name + '.enc', 'rb') as fo:
-                plaintext = fo.read()
-            tow = plaintext.hex()
-            newtow = file_sig_en_in_bytes + tow
-            b = newtow[244:-2]
-            c = newtow[0:244]
-            d = binascii.unhexlify(c)
-            e = d.decode("utf-16")
-            print(e)
-            tow2 = bytes.fromhex(b)
-            newtow2 = bytes.fromhex(newtow)
-            enc2 = encrypt(newtow2, uni_key)
-            with open("ZIP NO FILE SIG.zip", 'wb') as writeenc:
-                writeenc.write(tow2)
-            with open("FILE SIG AND ENCRYPTED.enc", 'wb') as writeenc:
-                writeenc.write(enc2)
-            with open("FILE SIG AND ENCRYPTED.enc", 'rb') as fo:
-                encdata = fo.read()
-            dec = decrypt(encdata, uni_key)
-            with open("WITH FILE SIG ONLY.enc", 'wb') as writeenc:
-                writeenc.write(dec)
-            with open("WITH FILE SIG ONLY.enc", 'rb') as fo:
-                newtow2 = fo.read()
-            h = newtow2[244:-2]
-            with open("ZIP NO FILE SIG PROCESSED.zip", 'wb') as writeenc:
-                writeenc.write(h)
+        # def fheadwrite(file_name):
+        #     with open('encrypted/' + file_name + '.enc', 'rb') as fo:
+        #         plaintext = fo.read()
+        #     tow = plaintext.hex()
+        #     newtow = file_sig_en_in_bytes + tow
+        #     b = newtow[244:-2]
+        #     c = newtow[0:244]
+        #     d = binascii.unhexlify(c)
+        #     e = d.decode("utf-16")
+        #     print(e)
+        #     tow2 = bytes.fromhex(b)
+        #     newtow2 = bytes.fromhex(newtow)
+        #     enc2 = encrypt(newtow2, uni_key)
+        #     with open("ZIP NO FILE SIG.zip", 'wb') as writeenc:
+        #         writeenc.write(tow2)
+        #     with open("FILE SIG AND ENCRYPTED.enc", 'wb') as writeenc:
+        #         writeenc.write(enc2)
+        #     with open("FILE SIG AND ENCRYPTED.enc", 'rb') as fo:
+        #         encdata = fo.read()
+        #     dec = decrypt(encdata, uni_key)
+        #     with open("WITH FILE SIG ONLY.enc", 'wb') as writeenc:
+        #         writeenc.write(dec)
+        #     with open("WITH FILE SIG ONLY.enc", 'rb') as fo:
+        #         newtow2 = fo.read()
+        #     h = newtow2[244:-2]
+        #     with open("ZIP NO FILE SIG PROCESSED.zip", 'wb') as writeenc:
+        #         writeenc.write(h)
 
         def encrypt_file(key):
-
             try:
                 email = []
 
                 for index in listbox.curselection():
-                    email.insert(index,listbox.get(index))
+                    email.insert(index, listbox.get(index))
 
                 with open('cache/recipient', 'w') as f:
                     for line in email:
