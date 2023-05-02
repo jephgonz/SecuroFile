@@ -24,7 +24,7 @@ current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'ut
 FONT = ('Nirmala UI', 16, 'bold')
 
 # FILE HEADER SIGNATURE
-#uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
+uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
 file_sig = '$securofile$'
 #file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
@@ -345,12 +345,25 @@ class Page2(tk.Frame):
                 print("File Directory: " + str(head))
                 print("File Path: " + str(file_path))
                 with open(file_path, 'rb') as fo:
-                    plaintext = fo.read()
-                enc = encrypt(plaintext, key)
+                    plaintext1 = fo.read()
+                enc = encrypt(plaintext1, key)
+
+                with open('cache/key', 'rb') as fo:
+                    plaintext2 = fo.read()
+                kenc = encrypt(plaintext2, uni_key)
+
+                with open('cache/recipient', 'rb') as fo:
+                    plaintext3 = fo.read()
+                renc = encrypt(plaintext3, uni_key)
+
                 with open('cache/filename', 'wb') as filename:
                     filename.write(tail.encode())
                 with open("cache/enc", 'wb') as fo:
                     fo.write(enc)
+                with open("cache/key", 'wb') as fo:
+                    fo.write(kenc)
+                with open("cache/recipient", 'wb') as fo:
+                    fo.write(renc)
                 compressenc(root)
                 # fheadwrite(root)
                 print("Succesfully Encrypted!")
@@ -367,6 +380,21 @@ class Page2(tk.Frame):
             extractenc(file_path)
             with open("cache/enc", 'rb') as fo1:
                 ciphertext = fo1.read()
+
+            with open('cache/key', 'rb') as fo:
+                plaintext2 = fo.read()
+            kenc = decrypt(plaintext2, uni_key)
+
+            with open("cache/key", 'wb') as fo:
+                fo.write(kenc)
+
+            with open('cache/recipient', 'rb') as fo:
+                plaintext3 = fo.read()
+            renc = decrypt(plaintext3, uni_key)
+
+            with open("cache/recipient", 'wb') as fo:
+                fo.write(renc)
+
             with open("cache/key", 'rb') as fo2:
                 fkey = fo2.read()
                 print("Key: " + str(fkey))
