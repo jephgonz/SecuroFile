@@ -77,7 +77,7 @@ class tkinterApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (StartPage, Page1, Page2, Page3):
+        for F in (StartPage, Page1, Page2, Page3, DevicePage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -414,6 +414,96 @@ class Page2(tk.Frame):
 
 
 class Page3(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.configure(bg="#292F36")
+        frame = Frame(self, width=350, height=550, bg="#292F36")
+        frame.place(x=25, y=25)
+
+        listbox = Listbox(frame, selectmode=MULTIPLE)
+        listbox.grid(row=4, columnspan=2)
+
+        # Using readlines()
+        file1 = open('user/contacts.txt', 'r')
+        Lines = file1.readlines()
+
+        count = 0
+        # Strips the newline character
+        for line in Lines:
+            count += 1
+            listbox.insert(count, line.strip())
+
+        entrybox = Entry(frame)
+        entrybox.grid(row=5, columnspan=2)
+
+        addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
+        addButton.grid(row=6, columnspan=2)
+        delButton = Button(frame, font=FONT, text="delete", state=NORMAL, command=lambda: (delete()))
+        delButton.grid(row=7, columnspan=2)
+
+        buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
+                           fg="#FFFFFF",
+                           bg="#FF6B6B")
+        buttonset.grid(row=8, columnspan=2)
+
+        btn_decrypt = Button(frame, font=FONT, text="REGISTER DEVICE", state=NORMAL,
+                             command=lambda: (regdev(current_machine_id)),
+                             fg="#FFFFFF", bg="#FF6B6B")
+        btn_decrypt.grid(row=3, columnspan=2)
+
+        def add():
+            if re.fullmatch(regex, entrybox.get()):
+                listbox.insert(listbox.size(), entrybox.get())
+
+                all_items = listbox.get(0, tk.END)
+
+                with open('user/contacts.txt', 'w') as f:
+                    for line in all_items:
+                        f.write(line)
+                        f.write('\n')
+
+                print("Email added")
+            else:
+                print("Invalid Email")
+
+        def delete():
+            try:
+                print("You deleted: " + listbox.get(listbox.curselection()))
+                listbox.delete(listbox.curselection())
+
+                all_items2 = listbox.get(0, tk.END)
+
+                with open('user/contacts.txt', 'w') as f:
+                    for line in all_items2:
+                        f.write(line)
+                        f.write('\n')
+
+                print("Email deleted")
+
+            except:
+                print("No item selected/Process done")
+
+        def regdev(current_machine_id):
+            database()
+            print("Current Device ID: " + str(current_machine_id))
+            query = "select * from devices"
+            cursor.execute(query)
+            table = cursor.fetchall()
+            match = 0
+            for row in table:
+                if current_machine_id == str(row[2]):
+                    match = 1
+                    print("Device already exist.")
+                    break
+            if match == 0:
+                sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
+                val = ("" + str(user_id) + "", "" + current_machine_id + "")
+                cursor.execute(sql, val)
+                con.commit()
+                print("Device registered successfully.")
+
+
+class DevicePage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
