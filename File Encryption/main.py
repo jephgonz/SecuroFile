@@ -20,6 +20,7 @@ regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 # GLOBAL VARIABLES
 list_files = ['cache/filename', 'cache/key', 'cache/enc', 'cache/recipient']
 user_id = ''
+cur_email = ''
 current_machine_id = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
 FONT = ('Nirmala UI', 16, 'bold')
 
@@ -77,7 +78,7 @@ class tkinterApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (StartPage, Page1, Page2, Page3, DevicePage):
+        for F in (StartPage, Page1, Page2, ContactPage, DevicePage):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -135,6 +136,8 @@ class StartPage(tk.Frame):
                         print("PW Hash: " + str(row2[5]))
                         global user_id
                         user_id = row2[0]
+                        global cur_email
+                        cur_email = EMAIL
                         print("User ID: " + str(user_id))
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
                         pass1.delete(0, 'end')
@@ -250,7 +253,12 @@ class Page2(tk.Frame):
         reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
         reButton.grid(row=6, columnspan=2)
 
-        buttonset = Button(frame, font=FONT, text="Settings", command=lambda: controller.show_frame(Page3),
+        buttonset = Button(frame, font=FONT, text="Devices", command=lambda: controller.show_frame(DevicePage),
+                           fg="#FFFFFF",
+                           bg="#FF6B6B")
+        buttonset.grid(row=7, columnspan=2)
+
+        buttonset = Button(frame, font=FONT, text="Contacts", command=lambda: controller.show_frame(ContactPage),
                            fg="#FFFFFF",
                            bg="#FF6B6B")
         buttonset.grid(row=8, columnspan=2)
@@ -413,12 +421,15 @@ class Page2(tk.Frame):
             filekey.write(key)
 
 
-class Page3(tk.Frame):
+class ContactPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
+
+        heading = Label(frame, text='Contacts', fg="#FFFFFF", bg="#292F36", font=FONT)
+        heading.grid(row=1, columnspan=2)
 
         listbox = Listbox(frame, selectmode=MULTIPLE)
         listbox.grid(row=4, columnspan=2)
@@ -436,20 +447,15 @@ class Page3(tk.Frame):
         entrybox = Entry(frame)
         entrybox.grid(row=5, columnspan=2)
 
-        addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
+        addButton = Button(frame, font=FONT, text="Add", state=NORMAL, command=lambda: (add()))
         addButton.grid(row=6, columnspan=2)
-        delButton = Button(frame, font=FONT, text="delete", state=NORMAL, command=lambda: (delete()))
+        delButton = Button(frame, font=FONT, text="Delete", state=NORMAL, command=lambda: (delete()))
         delButton.grid(row=7, columnspan=2)
 
         buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
                            fg="#FFFFFF",
                            bg="#FF6B6B")
         buttonset.grid(row=8, columnspan=2)
-
-        btn_decrypt = Button(frame, font=FONT, text="REGISTER DEVICE", state=NORMAL,
-                             command=lambda: (regdev(current_machine_id)),
-                             fg="#FFFFFF", bg="#FF6B6B")
-        btn_decrypt.grid(row=3, columnspan=2)
 
         def add():
             if re.fullmatch(regex, entrybox.get()):
@@ -483,52 +489,39 @@ class Page3(tk.Frame):
             except:
                 print("No item selected/Process done")
 
-        def regdev(current_machine_id):
-            database()
-            print("Current Device ID: " + str(current_machine_id))
-            query = "select * from devices"
-            cursor.execute(query)
-            table = cursor.fetchall()
-            match = 0
-            for row in table:
-                if current_machine_id == str(row[2]):
-                    match = 1
-                    print("Device already exist.")
-                    break
-            if match == 0:
-                sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
-                val = ("" + str(user_id) + "", "" + current_machine_id + "")
-                cursor.execute(sql, val)
-                con.commit()
-                print("Device registered successfully.")
-
 
 class DevicePage(tk.Frame):
     def __init__(self, parent, controller):
+
+        #draft queries
+        #SELECT COUNT(email) FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //to count how many devices registered
+        #SELECT deviceID FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //array of registered devices base on the email
+
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
 
+        heading = Label(frame, text='Device List', fg="#FFFFFF", bg="#292F36", font=FONT)
+        heading.grid(row=1, columnspan=2)
+
         listbox = Listbox(frame, selectmode=MULTIPLE)
         listbox.grid(row=4, columnspan=2)
 
-        # Using readlines()
-        file1 = open('user/contacts.txt', 'r')
-        Lines = file1.readlines()
-
-        count = 0
-        # Strips the newline character
-        for line in Lines:
-            count += 1
-            listbox.insert(count, line.strip())
+        database()
+        global cur_email
+        queryable = "SELECT deviceID FROM `user_devices` WHERE email = '"+cur_email+"'"
+        cursor.execute(queryable)
+        table = cursor.fetchall()
+        for row in table:
+            listbox.insert(0, row)
 
         entrybox = Entry(frame)
         entrybox.grid(row=5, columnspan=2)
 
-        addButton = Button(frame, font=FONT, text="add", state=NORMAL, command=lambda: (add()))
+        addButton = Button(frame, font=FONT, text="Add", state=NORMAL, command=lambda: (add()))
         addButton.grid(row=6, columnspan=2)
-        delButton = Button(frame, font=FONT, text="delete", state=NORMAL, command=lambda: (delete()))
+        delButton = Button(frame, font=FONT, text="Delete", state=NORMAL, command=lambda: (delete()))
         delButton.grid(row=7, columnspan=2)
 
         buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
