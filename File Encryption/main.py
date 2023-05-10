@@ -496,11 +496,6 @@ class ContactPage(tk.Frame):
 
 class DevicePage(tk.Frame):
     def __init__(self, parent, controller):
-
-        # draft queries
-        # SELECT COUNT(email) FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //to count how many devices registered
-        # SELECT deviceID FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //array of registered devices base on the email
-
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
@@ -560,24 +555,40 @@ class DevicePage(tk.Frame):
             database()
             print("Current Device ID: " + str(current_machine_id))
             query = "select * from devices"
+
+            query2 = "SELECT COUNT(email) FROM `user_devices` WHERE email = '"+cur_email+"'"
+
             cursor.execute(query)
             table = cursor.fetchall()
-            match = 0
-            for row in table:
-                if current_machine_id == str(row[2]):
-                    match = 1
-                    print("Device already exist.")
-                    tk.messagebox.showinfo(title="SecuroFile", message="Device already exist.")
-                    break
-            if match == 0:
-                sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
-                val = ("" + str(user_id) + "", "" + current_machine_id + "")
-                cursor.execute(sql, val)
-                con.commit()
-                # part when to insert the added device to listbox
-                listbox.insert(listbox.size(), current_machine_id)
-                print("Device registered successfully.")
-                tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
+            cursor.execute(query2)
+            table2 = cursor.fetchall()
+            count = 0
+            for row2 in table2:
+                count = row2[0]
+
+            print("Number of Devices Registered to the Account: "+count)
+
+            if count < 3:
+                match = 0
+                for row in table:
+                    if current_machine_id == str(row[2]):
+                        match = 1
+                        print("Device already exist.")
+                        tk.messagebox.showinfo(title="SecuroFile", message="Device already exist.")
+                        break
+                if match == 0:
+                    sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
+                    val = ("" + str(user_id) + "", "" + current_machine_id + "")
+                    cursor.execute(sql, val)
+                    con.commit()
+                    # part when to insert the added device to listbox
+                    listbox.insert(listbox.size(), current_machine_id)
+                    print("Device registered successfully.")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
+            else:
+                print("Maximum devices allocated.")
+                tk.messagebox.showinfo(title="SecuroFile", message="Maximum devices allocated.")
+
 
 
 # DRIVER CODE
