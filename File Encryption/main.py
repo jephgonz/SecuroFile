@@ -356,27 +356,43 @@ class Page2(tk.Frame):
             email = []
             # Strips the newline character
             for line in Lines:
-                print(line)
+                email.append(line.strip())
+            print(email)
 
-            print("Start Decrypting")
-            with open("cache/enc", 'rb') as fo1:
-                ciphertext = fo1.read()
-            with open('cache/key', 'rb') as fo:
-                plaintext2 = fo.read()
-            kenc = decrypt(plaintext2, uni_key)
-            with open("cache/key", 'wb') as fo:
-                fo.write(kenc)
-            with open("cache/key", 'rb') as fo2:
-                fkey = fo2.read()
-                print("Key: " + str(fkey))
-            with open("cache/filename", 'rb') as fo3:
-                file_name = fo3.read()
-                print("File Name: " + str(file_name))
-            dec = decrypt(ciphertext, fkey)
-            file = file_name
-            with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
-                fo.write(dec)
-            print("Succesfully Decrypted!")
+            for x in email:
+                if x == cur_email:
+                    print("Current email match!")
+                    database()
+                    queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
+                    cursor.execute(queryable)
+                    table = cursor.fetchall()
+                    for row in table:
+                        if row[0] == current_machine_id:
+                            print("Current Device match!")
+                            print("Start Decrypting")
+                            with open("cache/enc", 'rb') as fo1:
+                                ciphertext = fo1.read()
+                            with open('cache/key', 'rb') as fo:
+                                plaintext2 = fo.read()
+                            kenc = decrypt(plaintext2, uni_key)
+                            with open("cache/key", 'wb') as fo:
+                                fo.write(kenc)
+                            with open("cache/key", 'rb') as fo2:
+                                fkey = fo2.read()
+                                print("Key: " + str(fkey))
+                            with open("cache/filename", 'rb') as fo3:
+                                file_name = fo3.read()
+                                print("File Name: " + str(file_name))
+                            dec = decrypt(ciphertext, fkey)
+                            file = file_name
+                            with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
+                                fo.write(dec)
+                            print("Succesfully Decrypted!")
+                        else:
+                            print("Current Device doesnt match!")
+                else:
+                    print("Current email doesnt match!")
+
 
         # KEY GENERATION
         key = os.urandom(24)
@@ -531,7 +547,7 @@ class DevicePage(tk.Frame):
             for row2 in table2:
                 count = row2[0]
 
-            print("Number of Devices Registered to the Account: "+count)
+            print("Number of Devices Registered to the Account: "+str(count))
 
             if count < 3:
                 match = 0
