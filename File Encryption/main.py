@@ -359,6 +359,7 @@ class Page2(tk.Frame):
                 email.append(line.strip())
             print(email)
 
+            isDecrypted = False
             for x in email:
                 if x == cur_email:
                     print("Current email match!")
@@ -387,11 +388,17 @@ class Page2(tk.Frame):
                             file = file_name
                             with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
                                 fo.write(dec)
-                            print("Succesfully Decrypted!")
+                            isDecrypted = True
                         else:
                             print("Current Device doesnt match!")
                 else:
                     print("Current email doesnt match!")
+            if isDecrypted:
+                print("Succesfully Decrypted!")
+                tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
+            else:
+                print("Not Decrypted!")
+                tk.messagebox.showinfo(title="SecuroFile", message="Not Decrypted!")
 
 
         # KEY GENERATION
