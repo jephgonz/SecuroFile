@@ -45,20 +45,6 @@ print("Converted to true value:", file_sig_en_true_de)
 file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
 print("Converted true value to bytes:", file_sig_en_true_bytes)
 
-
-# string = file_sig_en
-# print("the string is:", string)
-# in_bytes = bytes(string, "utf-8")
-# print("string to byte:", in_bytes)
-# hex_bytes = binascii.hexlify(in_bytes)
-# print("hexlify converts the data to hexdecimal value :", hex_bytes)
-# hex_str = hex_bytes.decode("ascii")
-# print("This is the converted hex value:", hex_str)
-# # To convert hex to bytes
-# y=binascii.unhexlify(hex_str)
-# # unhexlify converts hex value to bytes.
-# print("This is the converts hex value to bytes:", y)
-
 # GLOBAL FUNCTIONS
 def database():
     print("Connection Initialize to Database")
@@ -282,12 +268,12 @@ class Page2(tk.Frame):
                 listbox.insert(count, line.strip())
             print("Contacts refreshed")
 
-        def compressenc(file_name):
+        def packenc(file_name):
             with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
                 for file in list_files:
                     zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
-        def extractenc(file_path):
+        def unpackenc(file_path):
             with zipfile.ZipFile(file_path, mode="r") as archive:
                 archive.extractall("")
 
@@ -306,41 +292,11 @@ class Page2(tk.Frame):
             plaintext = cipher.decrypt(ciphertext[AES.block_size:])
             return plaintext.rstrip(b"\0")
 
-        # def fheadwrite(file_name):
-        #     with open('encrypted/' + file_name + '.enc', 'rb') as fo:
-        #         plaintext = fo.read()
-        #     tow = plaintext.hex()
-        #     newtow = file_sig_en_in_bytes + tow
-        #     b = newtow[244:-2]
-        #     c = newtow[0:244]
-        #     d = binascii.unhexlify(c)
-        #     e = d.decode("utf-16")
-        #     print(e)
-        #     tow2 = bytes.fromhex(b)
-        #     newtow2 = bytes.fromhex(newtow)
-        #     enc2 = encrypt(newtow2, uni_key)
-        #     with open("ZIP NO FILE SIG.zip", 'wb') as writeenc:
-        #         writeenc.write(tow2)
-        #     with open("FILE SIG AND ENCRYPTED.enc", 'wb') as writeenc:
-        #         writeenc.write(enc2)
-        #     with open("FILE SIG AND ENCRYPTED.enc", 'rb') as fo:
-        #         encdata = fo.read()
-        #     dec = decrypt(encdata, uni_key)
-        #     with open("WITH FILE SIG ONLY.enc", 'wb') as writeenc:
-        #         writeenc.write(dec)
-        #     with open("WITH FILE SIG ONLY.enc", 'rb') as fo:
-        #         newtow2 = fo.read()
-        #     h = newtow2[244:-2]
-        #     with open("ZIP NO FILE SIG PROCESSED.zip", 'wb') as writeenc:
-        #         writeenc.write(h)
-
         def encrypt_file(key):
             try:
-                email = []
-
+                email = [cur_email]
                 for index in listbox.curselection():
                     email.insert(index, listbox.get(index))
-
                 with open('cache/recipient', 'w') as f:
                     for line in email:
                         f.write(line)
@@ -353,18 +309,16 @@ class Page2(tk.Frame):
                 print("File Name: " + str(tail))
                 print("File Directory: " + str(head))
                 print("File Path: " + str(file_path))
+
                 with open(file_path, 'rb') as fo:
                     plaintext1 = fo.read()
                 enc = encrypt(plaintext1, key)
-
                 with open('cache/key', 'rb') as fo:
                     plaintext2 = fo.read()
                 kenc = encrypt(plaintext2, uni_key)
-
                 with open('cache/recipient', 'rb') as fo:
                     plaintext3 = fo.read()
                 renc = encrypt(plaintext3, uni_key)
-
                 with open('cache/filename', 'wb') as filename:
                     filename.write(tail.encode())
                 with open("cache/enc", 'wb') as fo:
@@ -373,10 +327,8 @@ class Page2(tk.Frame):
                     fo.write(kenc)
                 with open("cache/recipient", 'wb') as fo:
                     fo.write(renc)
-                compressenc(root)
-                # fheadwrite(root)
+                packenc(root)
                 print("Succesfully Encrypted!")
-
             except:
                 print("No item selected")
 
@@ -386,24 +338,34 @@ class Page2(tk.Frame):
             print("File Name: " + str(tail))
             print("File Directory: " + str(head))
             print("File Path: " + str(file_path))
-            extractenc(file_path)
-            with open("cache/enc", 'rb') as fo1:
-                ciphertext = fo1.read()
 
-            with open('cache/key', 'rb') as fo:
-                plaintext2 = fo.read()
-            kenc = decrypt(plaintext2, uni_key)
+            print("Unpacking")
+            unpackenc(file_path)
 
-            with open("cache/key", 'wb') as fo:
-                fo.write(kenc)
-
+            # Decrypt Recipients
             with open('cache/recipient', 'rb') as fo:
                 plaintext3 = fo.read()
             renc = decrypt(plaintext3, uni_key)
-
             with open("cache/recipient", 'wb') as fo:
                 fo.write(renc)
 
+            # Using readlines()
+            file1 = open('cache/recipient', 'r')
+            Lines = file1.readlines()
+
+            email = []
+            # Strips the newline character
+            for line in Lines:
+                print(line)
+
+            print("Start Decrypting")
+            with open("cache/enc", 'rb') as fo1:
+                ciphertext = fo1.read()
+            with open('cache/key', 'rb') as fo:
+                plaintext2 = fo.read()
+            kenc = decrypt(plaintext2, uni_key)
+            with open("cache/key", 'wb') as fo:
+                fo.write(kenc)
             with open("cache/key", 'rb') as fo2:
                 fkey = fo2.read()
                 print("Key: " + str(fkey))
@@ -416,6 +378,7 @@ class Page2(tk.Frame):
                 fo.write(dec)
             print("Succesfully Decrypted!")
 
+        # KEY GENERATION
         key = os.urandom(24)
         print("Generated Key: " + str(key))
         with open('cache/key', 'wb') as filekey:
@@ -490,8 +453,8 @@ class ContactPage(tk.Frame):
                 print("Email deleted")
                 tk.messagebox.showinfo(title="SecuroFile", message="Email deleted.")
             except:
-                print("No item selected/Process done")
-                tk.messagebox.showinfo(title="SecuroFile", message="No item selected/Process done.")
+                print("No item selected")
+                tk.messagebox.showinfo(title="SecuroFile", message="No item selected.")
 
 
 class DevicePage(tk.Frame):
@@ -508,6 +471,8 @@ class DevicePage(tk.Frame):
 
         listbox = Listbox(frame)
         listbox.grid(row=4, columnspan=2)
+
+        listbox.insert(0, "Refresh to Reveal Devices")
 
         reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
         reButton.grid(row=6, columnspan=2)
