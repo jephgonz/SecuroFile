@@ -27,7 +27,7 @@ FONT = ('Nirmala UI', 16, 'bold')
 # FILE HEADER SIGNATURE
 uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
 file_sig = '$securofile$'
-#file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
+# file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
 string = file_sig
 print("String to be converted :", string)
@@ -61,6 +61,7 @@ print("Converted true value to bytes:", file_sig_en_true_bytes)
 
 # GLOBAL FUNCTIONS
 def database():
+    print("Connection Initialize to Database")
     global con, cursor
     con = mysql.connector.connect(host="localhost", user="root", password="", database="capstone")
     cursor = con.cursor()
@@ -469,8 +470,10 @@ class ContactPage(tk.Frame):
                         f.write('\n')
 
                 print("Email added")
+                tk.messagebox.showinfo(title="SecuroFile", message="Email added.")
             else:
                 print("Invalid Email")
+                tk.messagebox.showinfo(title="SecuroFile", message="Invalid Email.")
 
         def delete():
             try:
@@ -485,17 +488,18 @@ class ContactPage(tk.Frame):
                         f.write('\n')
 
                 print("Email deleted")
-
+                tk.messagebox.showinfo(title="SecuroFile", message="Email deleted.")
             except:
                 print("No item selected/Process done")
+                tk.messagebox.showinfo(title="SecuroFile", message="No item selected/Process done.")
 
 
 class DevicePage(tk.Frame):
     def __init__(self, parent, controller):
 
-        #draft queries
-        #SELECT COUNT(email) FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //to count how many devices registered
-        #SELECT deviceID FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //array of registered devices base on the email
+        # draft queries
+        # SELECT COUNT(email) FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //to count how many devices registered
+        # SELECT deviceID FROM `user_devices` WHERE email = "jrmillan23@gmail.com" //array of registered devices base on the email
 
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
@@ -504,67 +508,53 @@ class DevicePage(tk.Frame):
 
         heading = Label(frame, text='Device List', fg="#FFFFFF", bg="#292F36", font=FONT)
         heading.grid(row=1, columnspan=2)
+        heading = Label(frame, text=current_machine_id, fg="#FFFFFF", bg="#292F36", font=FONT)
+        heading.grid(row=2, columnspan=2)
 
-        listbox = Listbox(frame, selectmode=MULTIPLE)
+        listbox = Listbox(frame)
         listbox.grid(row=4, columnspan=2)
 
-        database()
-        global cur_email
-        queryable = "SELECT deviceID FROM `user_devices` WHERE email = '"+cur_email+"'"
-        cursor.execute(queryable)
-        table = cursor.fetchall()
-        for row in table:
-            listbox.insert(0, row)
+        reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
+        reButton.grid(row=6, columnspan=2)
 
-        entrybox = Entry(frame)
-        entrybox.grid(row=5, columnspan=2)
-
-        addButton = Button(frame, font=FONT, text="Add", state=NORMAL, command=lambda: (add()))
-        addButton.grid(row=6, columnspan=2)
+        addButton = Button(frame, font=FONT, text="Register Device", state=NORMAL,
+                           command=lambda: (regdev(current_machine_id)))
+        addButton.grid(row=7, columnspan=2)
         delButton = Button(frame, font=FONT, text="Delete", state=NORMAL, command=lambda: (delete()))
-        delButton.grid(row=7, columnspan=2)
+        delButton.grid(row=8, columnspan=2)
 
         buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
                            fg="#FFFFFF",
                            bg="#FF6B6B")
-        buttonset.grid(row=8, columnspan=2)
+        buttonset.grid(row=9, columnspan=2)
 
-        btn_decrypt = Button(frame, font=FONT, text="REGISTER DEVICE", state=NORMAL,
-                             command=lambda: (regdev(current_machine_id)),
-                             fg="#FFFFFF", bg="#FF6B6B")
-        btn_decrypt.grid(row=3, columnspan=2)
-
-        def add():
-            if re.fullmatch(regex, entrybox.get()):
-                listbox.insert(listbox.size(), entrybox.get())
-
-                all_items = listbox.get(0, tk.END)
-
-                with open('user/contacts.txt', 'w') as f:
-                    for line in all_items:
-                        f.write(line)
-                        f.write('\n')
-
-                print("Email added")
-            else:
-                print("Invalid Email")
+        def refresh():
+            listbox.delete(0, tk.END)
+            print("Start Get Devices")
+            database()
+            global cur_email
+            queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
+            cursor.execute(queryable)
+            table = cursor.fetchall()
+            for row in table:
+                print(row)
+                listbox.insert(0, row[0])
+            print("Devices Refreshed")
 
         def delete():
             try:
-                print("You deleted: " + listbox.get(listbox.curselection()))
+                devstr = listbox.get(listbox.curselection())
+                print("You deleted: " + devstr)
                 listbox.delete(listbox.curselection())
-
-                all_items2 = listbox.get(0, tk.END)
-
-                with open('user/contacts.txt', 'w') as f:
-                    for line in all_items2:
-                        f.write(line)
-                        f.write('\n')
-
-                print("Email deleted")
+                database()
+                query = "DELETE FROM devices WHERE user_id = '" + str(user_id) + "' AND deviceID = '" + devstr + "'"
+                cursor.execute(query)
+                con.commit()
+                print("Device Removed")
+                tk.messagebox.showinfo(title="SecuroFile", message="Device removed successfully.")
 
             except:
-                print("No item selected/Process done")
+                print("Something went wrong")
 
         def regdev(current_machine_id):
             database()
@@ -577,13 +567,17 @@ class DevicePage(tk.Frame):
                 if current_machine_id == str(row[2]):
                     match = 1
                     print("Device already exist.")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Device already exist.")
                     break
             if match == 0:
                 sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
                 val = ("" + str(user_id) + "", "" + current_machine_id + "")
                 cursor.execute(sql, val)
                 con.commit()
+                # part when to insert the added device to listbox
+                listbox.insert(listbox.size(), current_machine_id)
                 print("Device registered successfully.")
+                tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
 
 
 # DRIVER CODE
