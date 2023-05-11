@@ -27,7 +27,6 @@ FONT = ('Nirmala UI', 16, 'bold')
 # FILE HEADER SIGNATURE
 uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
 file_sig = '$securofile$'
-# file_sig_en = bcrypt.hashpw(file_sig.encode('utf8'), bcrypt.gensalt()).decode()
 
 string = file_sig
 print("String to be converted :", string)
@@ -44,6 +43,7 @@ print("Converted to true value:", file_sig_en_true_de)
 
 file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
 print("Converted true value to bytes:", file_sig_en_true_bytes)
+
 
 # GLOBAL FUNCTIONS
 def database():
@@ -83,7 +83,7 @@ class StartPage(tk.Frame):
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
-        heading = Label(frame, text='LOGIN', fg="#FFFFFF", bg="#292F36", font=FONT)
+        heading = Label(frame, text='Login', fg="#FFFFFF", bg="#292F36", font=FONT)
         heading.grid(row=1, columnspan=2)
         EMAIL = StringVar()
         PASS = StringVar()
@@ -142,7 +142,7 @@ class Page1(tk.Frame):
         self.configure(bg="#292F36")
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
-        heading = Label(frame, text='REGISTER', fg="#FFFFFF", bg="#292F36", font=FONT)
+        heading = Label(frame, text='Register', fg="#FFFFFF", bg="#292F36", font=FONT)
         heading.grid(row=1, columnspan=2)
         FNAME = StringVar()
         MNAME = StringVar()
@@ -217,15 +217,23 @@ class Page2(tk.Frame):
         frame = Frame(self, width=350, height=550, bg="#292F36")
         frame.place(x=25, y=25)
 
+        heading = Label(frame, text='Select Recipients', fg="#FFFFFF", bg="#292F36", font=FONT)
+        heading.grid(row=1, column=1)
+
+        listbox = Listbox(frame, selectmode=MULTIPLE, width=57)
+        listbox.grid(row=2, column=1)
+
+        reButton = Button(frame, font=FONT, text="Refresh Contacts", state=NORMAL, command=lambda: (refresh()))
+        reButton.grid(row=3, column=1)
+
         btn_encrypt = Button(frame, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file(key)),
                              fg="#FFFFFF", bg="#4ECDC4")
-        btn_encrypt.grid(row=1, columnspan=2)
+        btn_encrypt.grid(row=4, column=1)
         btn_decrypt = Button(frame, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file()),
                              fg="#FFFFFF", bg="#FF6B6B")
-        btn_decrypt.grid(row=2, columnspan=2)
+        btn_decrypt.grid(row=5, column=1)
 
-        listbox = Listbox(frame, selectmode=MULTIPLE)
-        listbox.grid(row=4, columnspan=2)
+
 
         # Using readlines()
         file1 = open('user/contacts.txt', 'r')
@@ -237,23 +245,22 @@ class Page2(tk.Frame):
             count += 1
             listbox.insert(count, line.strip())
 
-        reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
-        reButton.grid(row=6, columnspan=2)
 
-        buttonset = Button(frame, font=FONT, text="Devices", command=lambda: controller.show_frame(DevicePage),
-                           fg="#FFFFFF",
-                           bg="#FF6B6B")
-        buttonset.grid(row=7, columnspan=2)
 
         buttonset = Button(frame, font=FONT, text="Contacts", command=lambda: controller.show_frame(ContactPage),
                            fg="#FFFFFF",
                            bg="#FF6B6B")
-        buttonset.grid(row=8, columnspan=2)
+        buttonset.grid(row=6, column=1)
+
+        buttonset = Button(frame, font=FONT, text="Devices", command=lambda: controller.show_frame(DevicePage),
+                           fg="#FFFFFF",
+                           bg="#FF6B6B")
+        buttonset.grid(row=7, column=1)
 
         buttonlogout = Button(frame, font=FONT, text="Log Out", command=lambda: controller.show_frame(StartPage),
                               fg="#FFFFFF",
                               bg="#FF6B6B")
-        buttonlogout.grid(row=9, columnspan=2)
+        buttonlogout.grid(row=8, column=1)
 
         def refresh():
             listbox.delete(0, tk.END)
@@ -329,77 +336,80 @@ class Page2(tk.Frame):
                     fo.write(renc)
                 packenc(root)
                 print("Succesfully Encrypted!")
+                tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Encrypted!")
             except:
                 print("No item selected")
 
         def decrypt_file():
-            file_path = filedialog.askopenfilename()
-            head, tail = os.path.split(file_path)
-            print("File Name: " + str(tail))
-            print("File Directory: " + str(head))
-            print("File Path: " + str(file_path))
+            try:
+                file_path = filedialog.askopenfilename()
+                head, tail = os.path.split(file_path)
+                print("File Name: " + str(tail))
+                print("File Directory: " + str(head))
+                print("File Path: " + str(file_path))
 
-            print("Unpacking")
-            unpackenc(file_path)
+                print("Unpacking")
+                unpackenc(file_path)
 
-            # Decrypt Recipients
-            with open('cache/recipient', 'rb') as fo:
-                plaintext3 = fo.read()
-            renc = decrypt(plaintext3, uni_key)
-            with open("cache/recipient", 'wb') as fo:
-                fo.write(renc)
+                # Decrypt Recipients
+                with open('cache/recipient', 'rb') as fo:
+                    plaintext3 = fo.read()
+                renc = decrypt(plaintext3, uni_key)
+                with open("cache/recipient", 'wb') as fo:
+                    fo.write(renc)
 
-            # Using readlines()
-            file1 = open('cache/recipient', 'r')
-            Lines = file1.readlines()
+                # Using readlines()
+                file1 = open('cache/recipient', 'r')
+                Lines = file1.readlines()
 
-            email = []
-            # Strips the newline character
-            for line in Lines:
-                email.append(line.strip())
-            print(email)
+                email = []
+                # Strips the newline character
+                for line in Lines:
+                    email.append(line.strip())
+                print(email)
 
-            isDecrypted = False
-            for x in email:
-                if x == cur_email:
-                    print("Current email match!")
-                    database()
-                    queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
-                    cursor.execute(queryable)
-                    table = cursor.fetchall()
-                    for row in table:
-                        if row[0] == current_machine_id:
-                            print("Current Device match!")
-                            print("Start Decrypting")
-                            with open("cache/enc", 'rb') as fo1:
-                                ciphertext = fo1.read()
-                            with open('cache/key', 'rb') as fo:
-                                plaintext2 = fo.read()
-                            kenc = decrypt(plaintext2, uni_key)
-                            with open("cache/key", 'wb') as fo:
-                                fo.write(kenc)
-                            with open("cache/key", 'rb') as fo2:
-                                fkey = fo2.read()
-                                print("Key: " + str(fkey))
-                            with open("cache/filename", 'rb') as fo3:
-                                file_name = fo3.read()
-                                print("File Name: " + str(file_name))
-                            dec = decrypt(ciphertext, fkey)
-                            file = file_name
-                            with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
-                                fo.write(dec)
-                            isDecrypted = True
-                        else:
-                            print("Current Device doesnt match!")
+                isDecrypted = False
+                for x in email:
+                    if x == cur_email:
+                        print("Current email match!")
+                        database()
+                        queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
+                        cursor.execute(queryable)
+                        table = cursor.fetchall()
+                        for row in table:
+                            if row[0] == current_machine_id:
+                                print("Current Device match!")
+                                print("Start Decrypting")
+                                with open("cache/enc", 'rb') as fo1:
+                                    ciphertext = fo1.read()
+                                with open('cache/key', 'rb') as fo:
+                                    plaintext2 = fo.read()
+                                kenc = decrypt(plaintext2, uni_key)
+                                with open("cache/key", 'wb') as fo:
+                                    fo.write(kenc)
+                                with open("cache/key", 'rb') as fo2:
+                                    fkey = fo2.read()
+                                    print("Key: " + str(fkey))
+                                with open("cache/filename", 'rb') as fo3:
+                                    file_name = fo3.read()
+                                    print("File Name: " + str(file_name))
+                                dec = decrypt(ciphertext, fkey)
+                                file = file_name
+                                with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
+                                    fo.write(dec)
+                                isDecrypted = True
+                            else:
+                                print("Current Device doesnt match!")
+                    else:
+                        print("Current email doesnt match!")
+                if isDecrypted:
+                    print("Succesfully Decrypted!")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
-                    print("Current email doesnt match!")
-            if isDecrypted:
-                print("Succesfully Decrypted!")
-                tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
-            else:
-                print("Not Decrypted!")
-                tk.messagebox.showinfo(title="SecuroFile", message="Not Decrypted!")
-
+                    print("Not Decrypted!")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Not Decrypted!")
+            except:
+                print("No item selected")
 
         # KEY GENERATION
         key = os.urandom(24)
@@ -416,10 +426,10 @@ class ContactPage(tk.Frame):
         frame.place(x=25, y=25)
 
         heading = Label(frame, text='Contacts', fg="#FFFFFF", bg="#292F36", font=FONT)
-        heading.grid(row=1, columnspan=2)
+        heading.grid(row=1, column=1)
 
-        listbox = Listbox(frame, selectmode=MULTIPLE)
-        listbox.grid(row=4, columnspan=2)
+        listbox = Listbox(frame, selectmode=MULTIPLE, width=57)
+        listbox.grid(row=2, column=1)
 
         # Using readlines()
         file1 = open('user/contacts.txt', 'r')
@@ -431,18 +441,18 @@ class ContactPage(tk.Frame):
             count += 1
             listbox.insert(count, line.strip())
 
-        entrybox = Entry(frame)
-        entrybox.grid(row=5, columnspan=2)
+        entrybox = Entry(frame, width=57)
+        entrybox.grid(row=3, column=1)
 
         addButton = Button(frame, font=FONT, text="Add", state=NORMAL, command=lambda: (add()))
-        addButton.grid(row=6, columnspan=2)
+        addButton.grid(row=4, column=1)
         delButton = Button(frame, font=FONT, text="Delete", state=NORMAL, command=lambda: (delete()))
-        delButton.grid(row=7, columnspan=2)
+        delButton.grid(row=5, column=1)
 
         buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
                            fg="#FFFFFF",
                            bg="#FF6B6B")
-        buttonset.grid(row=8, columnspan=2)
+        buttonset.grid(row=6, column=1)
 
         def add():
             if re.fullmatch(regex, entrybox.get()):
@@ -488,28 +498,28 @@ class DevicePage(tk.Frame):
         frame.place(x=25, y=25)
 
         heading = Label(frame, text='Device List', fg="#FFFFFF", bg="#292F36", font=FONT)
-        heading.grid(row=1, columnspan=2)
-        heading = Label(frame, text=current_machine_id, fg="#FFFFFF", bg="#292F36", font=FONT)
-        heading.grid(row=2, columnspan=2)
+        heading.grid(row=1, column=1)
+        heading = Label(frame, text="Current Device: "+current_machine_id, fg="#FFFFFF", bg="#292F36", font=('Nirmala UI', 9, 'bold'))
+        heading.grid(row=2, column=1)
 
-        listbox = Listbox(frame)
-        listbox.grid(row=4, columnspan=2)
+        listbox = Listbox(frame, width=57)
+        listbox.grid(row=3, column=1)
 
-        listbox.insert(0, "Refresh to Reveal Devices")
+        listbox.insert(0, "REFRESH TO REVEAL DEVICES")
 
         reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
-        reButton.grid(row=6, columnspan=2)
+        reButton.grid(row=4, column=1)
 
         addButton = Button(frame, font=FONT, text="Register Device", state=NORMAL,
                            command=lambda: (regdev(current_machine_id)))
-        addButton.grid(row=7, columnspan=2)
-        delButton = Button(frame, font=FONT, text="Delete", state=NORMAL, command=lambda: (delete()))
-        delButton.grid(row=8, columnspan=2)
+        addButton.grid(row=5, column=1)
+        delButton = Button(frame, font=FONT, text="Remove", state=NORMAL, command=lambda: (delete()))
+        delButton.grid(row=6, column=1)
 
         buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Page2),
                            fg="#FFFFFF",
                            bg="#FF6B6B")
-        buttonset.grid(row=9, columnspan=2)
+        buttonset.grid(row=7, column=1)
 
         def refresh():
             listbox.delete(0, tk.END)
