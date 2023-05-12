@@ -406,8 +406,8 @@ class Page2(tk.Frame):
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
-                    print("Not Decrypted!")
-                    tk.messagebox.showinfo(title="SecuroFile", message="Not Decrypted!")
+                    print("Access Denied!")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Access Denied!")
             except:
                 print("No item selected")
 
