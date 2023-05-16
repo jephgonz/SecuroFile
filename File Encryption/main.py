@@ -352,6 +352,10 @@ class Page2(tk.Frame):
                 print(b.hex())
                 c = bytearray(a, 'utf-8')
                 print(c)
+                c1 = c[0:52]
+                c2 = binascii.unhexlify(c1)
+                c3 = c2.decode("utf-16")
+                print(c3)
                 del c[0:52]
                 print(c)
                 d = c.decode("utf-8")
