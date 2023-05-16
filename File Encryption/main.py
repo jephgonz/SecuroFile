@@ -8,6 +8,7 @@ import zipfile
 from tkinter import *
 from tkinter import filedialog
 
+import pathlib
 import bcrypt
 import mysql.connector
 from Crypto import Random
@@ -311,6 +312,8 @@ class Page2(tk.Frame):
                 print("Email(s) submitted")
 
                 file_path = filedialog.askopenfilename()
+                fpath = pathlib.Path(file_path)
+
                 head, tail = os.path.split(file_path)
                 root, ext = os.path.splitext(tail)
                 print("File Name: " + str(tail))
@@ -335,6 +338,30 @@ class Page2(tk.Frame):
                 with open("cache/recipient", 'wb') as fo:
                     fo.write(renc)
                 packenc(root)
+
+                with open('encrypted/' + fpath.stem + '.enc', 'rb') as fo:
+                    file = fo.read()
+
+                x = file.hex()
+                y = file_sig_en_in_bytes
+                print(x)
+                a = y+x
+                print(a)
+                b = bytes.fromhex(a)
+                print(b)
+                print(b.hex())
+                c = bytearray(a, 'utf-8')
+                print(c)
+                del c[0:52]
+                print(c)
+                d = c.decode("utf-8")
+                print(d)
+                e = bytes.fromhex(d)
+                print(e)
+
+                with open('encrypted/' + fpath.stem + '.enc', 'wb') as fo:
+                    fo.write(e)
+
                 print("Succesfully Encrypted!")
                 tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Encrypted!")
             except:
