@@ -32,15 +32,32 @@ file_sig = '$securofile$'
 string = file_sig
 print("String to be converted :", string)
 
+fsigt = bcrypt.hashpw(str(file_sig).encode('utf8'), bcrypt.gensalt())
+fstext = fsigt.decode("utf-8")
+print("MD5 Hash: "+fstext)
+
 file_sig_en_in_hex = bytes(string, "utf-16")
 print("Converted to hex:", file_sig_en_in_hex)
+
+file_sig_en_in_hex2 = bytes(fstext, "utf-16")
+print("Converted to hex hash:", file_sig_en_in_hex2)
 
 file_sig_en_in_bytes = file_sig_en_in_hex.hex()
 print("Converted to bytes:", file_sig_en_in_bytes)
 
+file_sig_en_in_bytes2 = file_sig_en_in_hex2.hex()
+print("Converted to bytes hash:", file_sig_en_in_bytes2)
+
+fsigl = len(file_sig_en_in_bytes2)
+print("Length hash in bytes: "+str(fsigl))
+
 file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
 file_sig_en_true_de = file_sig_en_true.decode("utf-16")
 print("Converted to true value:", file_sig_en_true_de)
+
+file_sig_en_true2 = binascii.unhexlify(file_sig_en_in_bytes2)
+file_sig_en_true_de2 = file_sig_en_true2.decode("utf-16")
+print("Converted to true value hash:", file_sig_en_true_de2)
 
 file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
 print("Converted true value to bytes:", file_sig_en_true_bytes)
@@ -342,29 +359,17 @@ class Page2(tk.Frame):
                 with open('encrypted/' + fpath.stem + '.enc', 'rb') as fo:
                     file = fo.read()
 
+                print(file)
                 x = file.hex()
-                y = file_sig_en_in_bytes
+                y = file_sig_en_in_bytes2
                 print(x)
                 a = y+x
                 print(a)
                 b = bytes.fromhex(a)
                 print(b)
-                print(b.hex())
-                c = bytearray(a, 'utf-8')
-                print(c)
-                c1 = c[0:52]
-                c2 = binascii.unhexlify(c1)
-                c3 = c2.decode("utf-16")
-                print(c3)
-                del c[0:52]
-                print(c)
-                d = c.decode("utf-8")
-                print(d)
-                e = bytes.fromhex(d)
-                print(e)
 
                 with open('encrypted/' + fpath.stem + '.enc', 'wb') as fo:
-                    fo.write(e)
+                    fo.write(b)
 
                 print("Succesfully Encrypted!")
                 tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Encrypted!")
@@ -374,71 +379,100 @@ class Page2(tk.Frame):
         def decrypt_file():
             try:
                 file_path = filedialog.askopenfilename()
+                fpath = pathlib.Path(file_path)
                 head, tail = os.path.split(file_path)
                 print("File Name: " + str(tail))
                 print("File Directory: " + str(head))
                 print("File Path: " + str(file_path))
 
-                print("Unpacking")
-                unpackenc(file_path)
+                with open('encrypted/' + fpath.stem + '.enc', 'rb') as fo:
+                    plaintext = fo.read()
+                a = plaintext.hex()
+                print(a)
+                c = bytearray(a, 'utf-8')
+                print(c)
+                c1 = c[0:fsigl]
+                print(c1)
+                c2 = binascii.unhexlify(c1)
+                print(c2)
+                c3 = c2.decode("utf-16")
+                print(c3)
+                #c3 is the hash
 
-                # Decrypt Recipients
-                with open('cache/recipient', 'rb') as fo:
-                    plaintext3 = fo.read()
-                renc = decrypt(plaintext3, uni_key)
-                with open("cache/recipient", 'wb') as fo:
-                    fo.write(renc)
+                if bcrypt.checkpw(string.encode(), c3.encode()):
+                    print("File Valid")
+                    del c[0:fsigl]
+                    print(c)
+                    d = c.decode("utf-8")
+                    print(d)
+                    e = bytes.fromhex(d)
+                    print(e)
 
-                # Using readlines()
-                file1 = open('cache/recipient', 'r')
-                Lines = file1.readlines()
+                    with open('encrypted/' + fpath.stem + '.enc', 'wb') as fo:
+                        fo.write(e)
 
-                email = []
-                # Strips the newline character
-                for line in Lines:
-                    email.append(line.strip())
-                print(email)
+                    print("Unpacking")
+                    unpackenc(file_path)
 
-                isDecrypted = False
-                for x in email:
-                    if x == cur_email:
-                        print("Current email match!")
-                        database()
-                        queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
-                        cursor.execute(queryable)
-                        table = cursor.fetchall()
-                        for row in table:
-                            if row[0] == current_machine_id:
-                                print("Current Device match!")
-                                print("Start Decrypting")
-                                with open("cache/enc", 'rb') as fo1:
-                                    ciphertext = fo1.read()
-                                with open('cache/key', 'rb') as fo:
-                                    plaintext2 = fo.read()
-                                kenc = decrypt(plaintext2, uni_key)
-                                with open("cache/key", 'wb') as fo:
-                                    fo.write(kenc)
-                                with open("cache/key", 'rb') as fo2:
-                                    fkey = fo2.read()
-                                    print("Key: " + str(fkey))
-                                with open("cache/filename", 'rb') as fo3:
-                                    file_name = fo3.read()
-                                    print("File Name: " + str(file_name))
-                                dec = decrypt(ciphertext, fkey)
-                                file = file_name
-                                with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
-                                    fo.write(dec)
-                                isDecrypted = True
-                            else:
-                                print("Current Device doesnt match!")
+                    # Decrypt Recipients
+                    with open('cache/recipient', 'rb') as fo:
+                        plaintext3 = fo.read()
+                    renc = decrypt(plaintext3, uni_key)
+                    with open("cache/recipient", 'wb') as fo:
+                        fo.write(renc)
+
+                    # Using readlines()
+                    file1 = open('cache/recipient', 'r')
+                    Lines = file1.readlines()
+
+                    email = []
+                    # Strips the newline character
+                    for line in Lines:
+                        email.append(line.strip())
+                    print(email)
+
+                    isDecrypted = False
+                    for x in email:
+                        if x == cur_email:
+                            print("Current email match!")
+                            database()
+                            queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
+                            cursor.execute(queryable)
+                            table = cursor.fetchall()
+                            for row in table:
+                                if row[0] == current_machine_id:
+                                    print("Current Device match!")
+                                    print("Start Decrypting")
+                                    with open("cache/enc", 'rb') as fo1:
+                                        ciphertext = fo1.read()
+                                    with open('cache/key', 'rb') as fo:
+                                        plaintext2 = fo.read()
+                                    kenc = decrypt(plaintext2, uni_key)
+                                    with open("cache/key", 'wb') as fo:
+                                        fo.write(kenc)
+                                    with open("cache/key", 'rb') as fo2:
+                                        fkey = fo2.read()
+                                        print("Key: " + str(fkey))
+                                    with open("cache/filename", 'rb') as fo3:
+                                        file_name = fo3.read()
+                                        print("File Name: " + str(file_name))
+                                    dec = decrypt(ciphertext, fkey)
+                                    file = file_name
+                                    with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
+                                        fo.write(dec)
+                                    isDecrypted = True
+                                else:
+                                    print("Current Device doesnt match!")
+                        else:
+                            print("Current email doesnt match!")
+                    if isDecrypted:
+                        print("Succesfully Decrypted!")
+                        tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                     else:
-                        print("Current email doesnt match!")
-                if isDecrypted:
-                    print("Succesfully Decrypted!")
-                    tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
+                        print("Access Denied!")
+                        tk.messagebox.showinfo(title="SecuroFile", message="Access Denied!")
                 else:
-                    print("Access Denied!")
-                    tk.messagebox.showinfo(title="SecuroFile", message="Access Denied!")
+                    print("File Invalid")
             except:
                 print("No item selected")
 
