@@ -302,10 +302,21 @@ class Page2(tk.Frame):
         def encrypt_file(key):
             try:
                 email = [cur_email]
+                emailh = []
                 for index in listbox.curselection():
                     email.insert(index, listbox.get(index))
+
+                for index in email:
+                    print(index)
+                    index = str(bcrypt.hashpw(index.encode('utf8'), bcrypt.gensalt()).decode("utf-8"))
+                    print(index)
+                    emailh.append(str(index))
+
+                for index in emailh:
+                    print(index)
+
                 with open('cache/recipient', 'w') as f:
-                    for line in email:
+                    for line in emailh:
                         f.write(line)
                         f.write('\n')
                 print("Email(s) submitted")
@@ -374,7 +385,7 @@ class Page2(tk.Frame):
 
                 isDecrypted = False
                 for x in email:
-                    if x == cur_email:
+                    if bcrypt.checkpw(cur_email.encode(), x.encode()):
                         print("Current email match!")
                         database()
                         queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
