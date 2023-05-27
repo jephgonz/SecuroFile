@@ -38,9 +38,6 @@ print("Converted to hex:", file_sig_en_in_hex)
 file_sig_en_in_bytes = file_sig_en_in_hex.hex()
 print("Converted to bytes:", file_sig_en_in_bytes)
 
-fsigl = len(file_sig_en_in_bytes)
-print("Length hash in bytes: " + str(fsigl))
-
 file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
 file_sig_en_true_de = file_sig_en_true.decode("utf-16")
 print("Converted to true value:", file_sig_en_true_de)
