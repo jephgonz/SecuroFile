@@ -1,6 +1,7 @@
 # LIBRARIES
 import binascii
 import os
+import pathlib
 import re
 import subprocess
 import tkinter as tk
@@ -8,7 +9,6 @@ import zipfile
 from tkinter import *
 from tkinter import filedialog
 
-import pathlib
 import bcrypt
 import mysql.connector
 from Crypto import Random
@@ -32,32 +32,18 @@ file_sig = '$securofile$'
 string = file_sig
 print("String to be converted :", string)
 
-fsigt = bcrypt.hashpw(str(file_sig).encode('utf8'), bcrypt.gensalt())
-fstext = fsigt.decode("utf-8")
-print("MD5 Hash: "+fstext)
-
 file_sig_en_in_hex = bytes(string, "utf-16")
 print("Converted to hex:", file_sig_en_in_hex)
-
-file_sig_en_in_hex2 = bytes(fstext, "utf-16")
-print("Converted to hex hash:", file_sig_en_in_hex2)
 
 file_sig_en_in_bytes = file_sig_en_in_hex.hex()
 print("Converted to bytes:", file_sig_en_in_bytes)
 
-file_sig_en_in_bytes2 = file_sig_en_in_hex2.hex()
-print("Converted to bytes hash:", file_sig_en_in_bytes2)
-
-fsigl = len(file_sig_en_in_bytes2)
-print("Length hash in bytes: "+str(fsigl))
+fsigl = len(file_sig_en_in_bytes)
+print("Length hash in bytes: " + str(fsigl))
 
 file_sig_en_true = binascii.unhexlify(file_sig_en_in_bytes)
 file_sig_en_true_de = file_sig_en_true.decode("utf-16")
 print("Converted to true value:", file_sig_en_true_de)
-
-file_sig_en_true2 = binascii.unhexlify(file_sig_en_in_bytes2)
-file_sig_en_true_de2 = file_sig_en_true2.decode("utf-16")
-print("Converted to true value hash:", file_sig_en_true_de2)
 
 file_sig_en_true_bytes = bytes(file_sig_en_true_de, "utf-8")
 print("Converted true value to bytes:", file_sig_en_true_bytes)
@@ -251,8 +237,6 @@ class Page2(tk.Frame):
                              fg="#FFFFFF", bg="#FF6B6B")
         btn_decrypt.grid(row=5, column=1)
 
-
-
         # Using readlines()
         file1 = open('user/contacts.txt', 'r')
         Lines = file1.readlines()
@@ -262,8 +246,6 @@ class Page2(tk.Frame):
         for line in Lines:
             count += 1
             listbox.insert(count, line.strip())
-
-
 
         buttonset = Button(frame, font=FONT, text="Contacts", command=lambda: controller.show_frame(ContactPage),
                            fg="#FFFFFF",
@@ -356,21 +338,6 @@ class Page2(tk.Frame):
                     fo.write(renc)
                 packenc(root)
 
-                with open('encrypted/' + fpath.stem + '.enc', 'rb') as fo:
-                    file = fo.read()
-
-                print(file)
-                x = file.hex()
-                y = file_sig_en_in_bytes2
-                print(x)
-                a = y+x
-                print(a)
-                b = bytes.fromhex(a)
-                print(b)
-
-                with open('encrypted/' + fpath.stem + '.enc', 'wb') as fo:
-                    fo.write(b)
-
                 print("Succesfully Encrypted!")
                 tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Encrypted!")
             except:
@@ -385,102 +352,75 @@ class Page2(tk.Frame):
                 print("File Directory: " + str(head))
                 print("File Path: " + str(file_path))
 
-                with open('encrypted/' + fpath.stem + '.enc', 'rb') as fo:
-                    plaintext = fo.read()
-                a = plaintext.hex()
-                print(a)
-                c = bytearray(a, 'utf-8')
-                print(c)
-                c1 = c[0:fsigl]
-                print(c1)
-                c2 = binascii.unhexlify(c1)
-                print(c2)
-                c3 = c2.decode("utf-16")
-                print(c3)
-                #c3 is the hash
+                print("Unpacking")
+                unpackenc(file_path)
 
-                if bcrypt.checkpw(string.encode(), c3.encode()):
-                    print("File Valid")
-                    del c[0:fsigl]
-                    print(c)
-                    d = c.decode("utf-8")
-                    print(d)
-                    e = bytes.fromhex(d)
-                    print(e)
+                # Decrypt Recipients
+                with open('cache/recipient', 'rb') as fo:
+                    plaintext3 = fo.read()
+                renc = decrypt(plaintext3, uni_key)
+                with open("cache/recipient", 'wb') as fo:
+                    fo.write(renc)
 
-                    with open('encrypted/' + fpath.stem + '.enc', 'wb') as fo:
-                        fo.write(e)
+                # Using readlines()
+                file1 = open('cache/recipient', 'r')
+                Lines = file1.readlines()
 
-                    print("Unpacking")
-                    unpackenc(file_path)
+                email = []
+                # Strips the newline character
+                for line in Lines:
+                    email.append(line.strip())
+                print(email)
 
-                    # Decrypt Recipients
-                    with open('cache/recipient', 'rb') as fo:
-                        plaintext3 = fo.read()
-                    renc = decrypt(plaintext3, uni_key)
-                    with open("cache/recipient", 'wb') as fo:
-                        fo.write(renc)
-
-                    # Using readlines()
-                    file1 = open('cache/recipient', 'r')
-                    Lines = file1.readlines()
-
-                    email = []
-                    # Strips the newline character
-                    for line in Lines:
-                        email.append(line.strip())
-                    print(email)
-
-                    isDecrypted = False
-                    for x in email:
-                        if x == cur_email:
-                            print("Current email match!")
-                            database()
-                            queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
-                            cursor.execute(queryable)
-                            table = cursor.fetchall()
-                            for row in table:
-                                if row[0] == current_machine_id:
-                                    print("Current Device match!")
-                                    print("Start Decrypting")
-                                    with open("cache/enc", 'rb') as fo1:
-                                        ciphertext = fo1.read()
-                                    with open('cache/key', 'rb') as fo:
-                                        plaintext2 = fo.read()
-                                    kenc = decrypt(plaintext2, uni_key)
-                                    with open("cache/key", 'wb') as fo:
-                                        fo.write(kenc)
-                                    with open("cache/key", 'rb') as fo2:
-                                        fkey = fo2.read()
-                                        print("Key: " + str(fkey))
-                                    with open("cache/filename", 'rb') as fo3:
-                                        file_name = fo3.read()
-                                        print("File Name: " + str(file_name))
-                                    dec = decrypt(ciphertext, fkey)
-                                    file = file_name
-                                    with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
-                                        fo.write(dec)
-                                    isDecrypted = True
-                                else:
-                                    print("Current Device doesnt match!")
-                        else:
-                            print("Current email doesnt match!")
-                    if isDecrypted:
-                        print("Succesfully Decrypted!")
-                        tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
+                isDecrypted = False
+                for x in email:
+                    if x == cur_email:
+                        print("Current email match!")
+                        database()
+                        queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + cur_email + "'"
+                        cursor.execute(queryable)
+                        table = cursor.fetchall()
+                        for row in table:
+                            if row[0] == current_machine_id:
+                                print("Current Device match!")
+                                print("Start Decrypting")
+                                with open("cache/enc", 'rb') as fo1:
+                                    ciphertext = fo1.read()
+                                with open('cache/key', 'rb') as fo:
+                                    plaintext2 = fo.read()
+                                kenc = decrypt(plaintext2, uni_key)
+                                with open("cache/key", 'wb') as fo:
+                                    fo.write(kenc)
+                                with open("cache/key", 'rb') as fo2:
+                                    fkey = fo2.read()
+                                    print("Key: " + str(fkey))
+                                with open("cache/filename", 'rb') as fo3:
+                                    file_name = fo3.read()
+                                    print("File Name: " + str(file_name))
+                                dec = decrypt(ciphertext, fkey)
+                                file = file_name
+                                with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
+                                    fo.write(dec)
+                                isDecrypted = True
+                            else:
+                                print("Current Device doesnt match!")
                     else:
-                        print("Access Denied!")
-                        tk.messagebox.showinfo(title="SecuroFile", message="Access Denied!")
+                        print("Current email doesnt match!")
+                if isDecrypted:
+                    print("Succesfully Decrypted!")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
-                    print("File Invalid")
+                    print("Access Denied!")
+                    tk.messagebox.showinfo(title="SecuroFile", message="Access Denied!")
             except:
                 print("No item selected")
 
-        # KEY GENERATION
-        key = os.urandom(24)
-        print("Generated Key: " + str(key))
-        with open('cache/key', 'wb') as filekey:
-            filekey.write(key)
+
+# KEY GENERATION
+key = os.urandom(24)
+print("Generated Key: " + str(key))
+with open('cache/key', 'wb') as filekey:
+    filekey.write(key)
 
 
 class ContactPage(tk.Frame):
@@ -564,7 +504,8 @@ class DevicePage(tk.Frame):
 
         heading = Label(frame, text='Device List', fg="#FFFFFF", bg="#292F36", font=FONT)
         heading.grid(row=1, column=1)
-        heading = Label(frame, text="Current Device: "+current_machine_id, fg="#FFFFFF", bg="#292F36", font=('Nirmala UI', 9, 'bold'))
+        heading = Label(frame, text="Current Device: " + current_machine_id, fg="#FFFFFF", bg="#292F36",
+                        font=('Nirmala UI', 9, 'bold'))
         heading.grid(row=2, column=1)
 
         listbox = Listbox(frame, width=57)
@@ -619,7 +560,7 @@ class DevicePage(tk.Frame):
             print("Current Device ID: " + str(current_machine_id))
             query = "select * from devices"
 
-            query2 = "SELECT COUNT(email) FROM `user_devices` WHERE email = '"+cur_email+"'"
+            query2 = "SELECT COUNT(email) FROM `user_devices` WHERE email = '" + cur_email + "'"
 
             cursor.execute(query)
             table = cursor.fetchall()
@@ -629,7 +570,7 @@ class DevicePage(tk.Frame):
             for row2 in table2:
                 count = row2[0]
 
-            print("Number of Devices Registered to the Account: "+str(count))
+            print("Number of Devices Registered to the Account: " + str(count))
 
             if count < 3:
                 match = 0
@@ -651,7 +592,6 @@ class DevicePage(tk.Frame):
             else:
                 print("Maximum devices allocated.")
                 tk.messagebox.showinfo(title="SecuroFile", message="Maximum devices allocated.")
-
 
 
 # DRIVER CODE
