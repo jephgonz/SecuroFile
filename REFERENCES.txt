@@ -1,5 +1,4 @@
-https://stackoverflow.com/questions/20852664/python-pycrypto-encrypt-decrypt-text-files-with-aes
-https://www.youtube.com/watch?v=Ea1LjAyqBs4&ab_channel=PythonProgrammi
-
-https://stackoverflow.com/questions/6624453/whats-the-correct-way-to-convert-bytes-to-a-hex-string-in-python-3
-https://www.studytonight.com/python-howtos/how-to-convert-byte-to-hex-in-python
+encryption: https://stackoverflow.com/questions/20852664/python-pycrypto-encrypt-decrypt-text-files-with-aes
+listbox: https://www.youtube.com/watch?v=Ea1LjAyqBs4&ab_channel=PythonProgrammi
+bytes to hex: https://stackoverflow.com/questions/6624453/whats-the-correct-way-to-convert-bytes-to-a-hex-string-in-python-3
+bytes to hex: https://www.studytonight.com/python-howtos/how-to-convert-byte-to-hex-in-python
