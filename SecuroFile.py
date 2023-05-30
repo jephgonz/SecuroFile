@@ -8,7 +8,7 @@ import tkinter as tk
 import zipfile
 from tkinter import *
 from tkinter import filedialog
-
+import math, random
 import bcrypt
 import mysql.connector
 from Crypto import Random
@@ -600,6 +600,17 @@ class DevicePage(tk.Frame):
             else:
                 print("Maximum devices allocated.")
                 tk.messagebox.showinfo(title="SecuroFile", message="Maximum devices allocated.")
+
+        def generateOTP():
+            # Declare a digits variable
+            # which stores all digits
+            digits = "0123456789"
+            OTP = ""
+            # length of password can be changed
+            # by changing value in range
+            for i in range(4):
+                OTP += digits[math.floor(random.random() * 10)]
+            return OTP
 
 
 # DRIVER CODE
