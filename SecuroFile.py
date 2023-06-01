@@ -1,7 +1,6 @@
 #libraries
 import os
 import re
-import sys
 import subprocess
 import tkinter as tk
 import zipfile
