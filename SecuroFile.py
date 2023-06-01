@@ -1,6 +1,7 @@
 #libraries
 import os
 import re
+import sys
 import subprocess
 import tkinter as tk
 import zipfile
@@ -12,6 +13,7 @@ from Crypto import Random
 from Crypto.Cipher import AES
 import traceback
 from PIL import Image, ImageTk
+from tkPDFViewer2 import tkPDFViewer as pdf
 
 #global variables
 uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
@@ -46,7 +48,7 @@ def getHardwareId():
 class SecuroFileApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.geometry("470x700")
+        self.geometry("1280x720")
         self.title("SecuroFile")
         self.resizable(width=False, height=False)
         container = tk.Frame(self)
@@ -58,7 +60,7 @@ class SecuroFileApp(tk.Tk):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(Device)
+        self.show_frame(Login)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -125,7 +127,6 @@ class Login(tk.Frame):
                         lbl_result.config(text="Password incorrect", fg="red")
                 else:
                     lbl_result.config(text="Email not registered", fg="red")
-
 
 #register page
 class Register(tk.Frame):
@@ -215,6 +216,9 @@ class Main(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.configure(bg="#292F36")
+        v1=pdf.ShowPdf()
+        v2=v1.pdf_view(self,pdf_location="",width=95, height=40)
+        v2.place(x=480,y=25)
 
         heading = Label(self, text='SecuroFile', fg="#FFFFFF", bg="#292F36", font=Heading)
         heading.place(x=30,y=20)
@@ -246,8 +250,18 @@ class Main(tk.Frame):
 
         buttonset = Button(self, font=FONT, text="Devices", command=lambda: controller.show_frame(Device),fg="#FFFFFF",bg="#30A2FF")
         buttonset.place(x=360, y=20)
-        buttonlogout = Button(self, font=FONT, text="Sign Out", command=lambda: controller.show_frame(Login), fg="#FFFFFF", bg="#FF6B6B")
+        buttonlogout = Button(self, font=FONT, text="Sign Out", command=lambda:clearPDF(), fg="#FFFFFF", bg="#FF6B6B")
         buttonlogout.place(x=340,y=630)
+
+        def clearPDF():
+            v1 = pdf.ShowPdf()
+            v2 = v1.img_object_li.clear()
+            controller.show_frame(Login)
+
+        def showPDF(file_name):
+            v1 = pdf.ShowPdf()
+            v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40)
+            v2.place(x=480, y=25)
 
         def add():
             if re.fullmatch(regex, entrybox.get()):
@@ -421,6 +435,7 @@ class Main(tk.Frame):
                                 with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
                                     fo.write(dec)
                                 isDecrypted = True
+                                showPDF("decrypted/" + str(file.decode("utf-8")))
                 if isDecrypted:
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
