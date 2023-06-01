@@ -3,3 +3,4 @@ pycryptodome
 zipfile2
 mysql-connector
 Pillow
+tkPDFViewer
