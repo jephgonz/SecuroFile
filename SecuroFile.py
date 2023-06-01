@@ -58,7 +58,7 @@ class SecuroFileApp(tk.Tk):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(Main)
+        self.show_frame(Device)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -245,9 +245,9 @@ class Main(tk.Frame):
             listbox.insert(count, line.strip())
 
         buttonset = Button(self, font=FONT, text="Devices", command=lambda: controller.show_frame(Device),fg="#FFFFFF",bg="#30A2FF")
-        buttonset.place(x=260, y=20)
+        buttonset.place(x=360, y=20)
         buttonlogout = Button(self, font=FONT, text="Sign Out", command=lambda: controller.show_frame(Login), fg="#FFFFFF", bg="#FF6B6B")
-        buttonlogout.place(x=350,y=20)
+        buttonlogout.place(x=340,y=630)
 
         def add():
             if re.fullmatch(regex, entrybox.get()):
@@ -434,33 +434,22 @@ class Device(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
-        frame = Frame(self, width=350, height=550, bg="#292F36")
-        frame.place(x=25, y=25)
 
-        heading = Label(frame, text='Device List', fg="#FFFFFF", bg="#292F36", font=FONT)
-        heading.grid(row=1, column=1)
-        heading = Label(frame, text="Current Device: " + getHardwareId(), fg="#FFFFFF", bg="#292F36",
-                        font=('Nirmala UI', 9, 'bold'))
-        heading.grid(row=2, column=1)
-
-        listbox = Listbox(frame, width=57)
-        listbox.grid(row=3, column=1)
-
+        heading = Label(self, text='Device List', fg="#FFFFFF", bg="#292F36", font=Heading)
+        heading.place(x=30,y=20)
+        heading1 = Label(self, text="Current Device: " + getHardwareId(), fg="#FFFFFF", bg="#292F36", font=('Nirmala UI', 9, 'bold'))
+        heading1.place(x=30,y=80)
+        listbox = Listbox(self, width=65, height=30)
+        listbox.place(x=35, y=180)
         listbox.insert(0, "REFRESH TO REVEAL DEVICES")
-
-        reButton = Button(frame, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
-        reButton.grid(row=4, column=1)
-
-        addButton = Button(frame, font=FONT, text="Register Device", state=NORMAL,
-                           command=lambda: (regdev(getHardwareId())))
-        addButton.grid(row=5, column=1)
-        delButton = Button(frame, font=FONT, text="Remove", state=NORMAL, command=lambda: (delete()))
-        delButton.grid(row=6, column=1)
-
-        buttonset = Button(frame, font=FONT, text="Back", command=lambda: controller.show_frame(Main),
-                           fg="#FFFFFF",
-                           bg="#FF6B6B")
-        buttonset.grid(row=7, column=1)
+        reButton = Button(self, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
+        reButton.place(x=35, y=120)
+        addButton = Button(self, font=FONT, text="Register Device", state=NORMAL,command=lambda: (regdev(getHardwareId())),bg="#50C878", fg="#FFFFFF")
+        addButton.place(x=130, y=120)
+        delButton = Button(self, font=FONT, text="Remove", state=NORMAL, command=lambda: (delete()), bg="#FF6B6B", fg="#ffffff")
+        delButton.place(x=290, y=120)
+        buttonset = Button(self, font=FONT, text="Home", command=lambda: controller.show_frame(Main),bg="#FF6B6B", fg="#ffffff")
+        buttonset.place(x=370, y=20)
 
         def refresh():
             listbox.delete(0, tk.END)
