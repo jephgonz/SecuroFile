@@ -17,7 +17,7 @@ from tkPDFViewer2 import tkPDFViewer as pdf
 #global variables
 uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
 regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-list_files = ['cache/filename', 'cache/key', 'cache/enc', 'cache/recipient']
+list_files = ['cache/key', 'cache/enc', 'cache/recipient']
 user_id = ''
 current_email = ''
 Heading = ('Nirmala UI', 24, 'bold')
@@ -392,8 +392,6 @@ class Main(tk.Frame):
                 with open(file_path, 'rb') as fo:
                     plaintext1 = fo.read()
                 enc = encrypt(plaintext1, key)
-                with open('cache/filename', 'wb') as filename:
-                    filename.write(tail.encode())
                 with open("cache/enc", 'wb') as fo:
                     fo.write(enc)
                 mergeenc(root)
@@ -426,15 +424,11 @@ class Main(tk.Frame):
                                 with open("cache/key", 'rb') as fo2:
                                     fkey = fo2.read()
                                     print("Key: " + str(fkey))
-                                with open("cache/filename", 'rb') as fo3:
-                                    file_name = fo3.read()
-                                    print("File Name: " + str(file_name))
                                 dec = decrypt(ciphertext, fkey)
-                                file = file_name
-                                with open("decrypted/" + str(file.decode("utf-8")), 'wb') as fo:
+                                with open("cache/raw", 'wb') as fo:
                                     fo.write(dec)
                                 isDecrypted = True
-                                showPDF("decrypted/" + str(file.decode("utf-8")))
+                                showPDF("cache/raw")
                 if isDecrypted:
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")

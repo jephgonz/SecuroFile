@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 07, 2022 at 02:25 AM
--- Server version: 5.7.33
--- PHP Version: 8.1.8
+-- Generation Time: Jun 01, 2023 at 06:55 AM
+-- Server version: 8.0.30
+-- PHP Version: 8.1.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,8 +28,8 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `devices` (
-  `dev_id` int(45) NOT NULL,
-  `user_id` int(45) NOT NULL,
+  `dev_id` int NOT NULL,
+  `user_id` int NOT NULL,
   `deviceID` varchar(45) NOT NULL,
   `date_registered` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -39,7 +39,9 @@ CREATE TABLE `devices` (
 --
 
 INSERT INTO `devices` (`dev_id`, `user_id`, `deviceID`, `date_registered`) VALUES
-(10, 1, '573E09AB-E320-11E7-8A95-54E1ADF66EE4', '2022-11-07 10:24:46');
+(11, 2, 'EC336206-18FF-E611-9BD2-FC4596A496C2', '2023-05-31 10:08:59'),
+(12, 1, '3CB7BEED-0D51-ED11-80E9-088FC37E955D', '2023-05-31 10:00:05'),
+(13, 3, '3CB7BEED-0D51-ED11-80E9-088FC37E955D', '2023-06-01 13:51:49');
 
 -- --------------------------------------------------------
 
@@ -48,7 +50,7 @@ INSERT INTO `devices` (`dev_id`, `user_id`, `deviceID`, `date_registered`) VALUE
 --
 
 CREATE TABLE `users` (
-  `user_id` int(45) NOT NULL,
+  `user_id` int NOT NULL,
   `fname` varchar(20) NOT NULL,
   `mname` varchar(20) NOT NULL,
   `lname` varchar(20) NOT NULL,
@@ -61,7 +63,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `fname`, `mname`, `lname`, `email`, `password`) VALUES
-(1, 'Jephthah Ruel', 'Gonzales', 'Millan', 'jrmillan23@gmail.com', '$2b$12$IhCbHokw34zIH.BTU4YWSelf71Qxs1GUFNX54.c1tWlg4mpMlC.N2');
+(1, 'Jephthah Ruel', 'Gonzales', 'Millan', 'jrmillan23@gmail.com', '$2b$12$IhCbHokw34zIH.BTU4YWSelf71Qxs1GUFNX54.c1tWlg4mpMlC.N2'),
+(2, 'Jan', 'Gaas', 'Baguio', 'jbg@gmail.com', '$2b$12$0J.SA6mtmtyE4FutkN3gBeOMm5GGWm2qNlPbyN3WLAL6vREFC6owO'),
+(3, 'Ashley', 'Santos', 'Chan', 'ashfa1@gmail.com', '$2b$12$DA0XiZJCWdFkGoYOmxTioOs6TE0hrg1HXc1GIZBtbzb7IMXUlbtRi');
 
 -- --------------------------------------------------------
 
@@ -84,7 +88,7 @@ CREATE TABLE `user_devices` (
 --
 DROP TABLE IF EXISTS `user_devices`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `user_devices`  AS SELECT `u`.`fname` AS `fname`, `u`.`mname` AS `mname`, `u`.`lname` AS `lname`, `u`.`email` AS `email`, `d`.`deviceID` AS `deviceID` FROM (`devices` `d` left join `users` `u` on((`u`.`user_id` = `d`.`user_id`)))  ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `user_devices`  AS SELECT `u`.`fname` AS `fname`, `u`.`mname` AS `mname`, `u`.`lname` AS `lname`, `u`.`email` AS `email`, `d`.`deviceID` AS `deviceID` FROM (`devices` `d` left join `users` `u` on((`u`.`user_id` = `d`.`user_id`))) ;
 
 --
 -- Indexes for dumped tables
@@ -111,13 +115,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `devices`
 --
 ALTER TABLE `devices`
-  MODIFY `dev_id` int(45) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `dev_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(45) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `user_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
