@@ -29,6 +29,7 @@ FONT = ('Nirmala UI', 14, 'bold')
 FONTR = ('Nirmala UI', 14)
 Small = ('Nirmala UI', 11, 'bold')
 SmallR = ('Nirmala UI', 11)
+OTP = ('Nirmala UI', 20)
 BGCOL = "#27374D"
 
 #OTP email settings
@@ -63,7 +64,7 @@ class SecuroFileApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (Login, Register, Main, Device):
+        for F in (Login, Register, Main, Verification, Device):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -256,10 +257,28 @@ class Main(tk.Frame):
             count += 1
             listbox.insert(count, line.strip())
 
-        buttonset = Button(self, font=FONT, text="Devices", command=lambda: controller.show_frame(Device),fg="#FFFFFF",bg="#30A2FF")
-        buttonset.place(x=360, y=20)
+        buttonset = Button(self, font=FONT, text="Devices", command=lambda:verifyDevice(),fg="#FFFFFF",bg="#30A2FF")
+        buttonset.place(x=360, y=25)
         buttonlogout = Button(self, font=FONT, text="Sign Out", command=lambda:clearPDF(), fg="#FFFFFF", bg="#FF6B6B")
         buttonlogout.place(x=340,y=630)
+
+        def verifyDevice():
+            if isVerified is True:
+                controller.show_frame(Device)
+            else:
+                global tempOTP
+                tempOTP = random.randint(100000, 999999)
+                print("OTP: " + str(tempOTP))
+                with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                    smtp.ehlo()
+                    smtp.starttls()
+                    smtp.ehlo()
+                    smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                    subject = 'Device verification code: ' + str(tempOTP)
+                    body = 'Use this code to verify your identity: ' + str(tempOTP)
+                    msg = f'Subject: {subject}\n\n{body}'
+                    smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
+                controller.show_frame(Verification)
 
         def clearPDF():
             v1 = pdf.ShowPdf()
@@ -451,10 +470,74 @@ class Main(tk.Frame):
             except Exception:
                 traceback.print_exc()
 
+class Verification(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.configure(bg="#292F36")
+
+        load = Image.open("assets/otp.png")
+        render = ImageTk.PhotoImage(load)
+        img = Label(self, image=render)
+        img.image = render
+        img.place(x=0, y=0)
+
+        heading = Label(self, text='Verification', fg="#ffffFF", bg="#292f36", font=Heading)
+        heading.place(x=30,y=20)
+        lbl_drotp = Label(self, text="Enter OTP Code sent to "+current_email, font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=80, y=300)
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=150, y=500)
+
+        fird = StringVar()
+        secd = StringVar()
+        thrd = StringVar()
+        foud = StringVar()
+        fifd = StringVar()
+        sixd = StringVar()
+        fird = Entry(self, font=OTP, textvariable=fird, width=3)
+        fird.place(x=75, y=390)
+        secd = Entry(self, font=OTP, textvariable=secd, width=3)
+        secd.place(x=130, y=390)
+        thrd = Entry(self, font=OTP, textvariable=thrd, width=3)
+        thrd.place(x=185, y=390)
+        foud = Entry(self, font=OTP, textvariable=foud, width=3)
+        foud.place(x=240, y=390)
+        fifd = Entry(self, font=OTP, textvariable=fifd, width=3)
+        fifd.place(x=295, y=390)
+        sixd = Entry(self, font=OTP, textvariable=sixd, width=3)
+        sixd.place(x=350, y=390)
+
+        sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        sendOTPButton.place(x=185, y=530)
+        buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        buttonset.place(x=25, y=80)
+        buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: controller.show_frame(Verification), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
+        buttonproceed.place(x=70, y=580)
+
+        def sendOTP():
+            global tempOTP
+            tempOTP = random.randint(100000, 999999)
+            print("OTP: "+str(tempOTP))
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                subject = 'Device verification code: '+str(tempOTP)
+                body = 'Use this code to verify your identity: '+str(tempOTP)
+                msg = f'Subject: {subject}\n\n{body}'
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
+
 class Device(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
+
+        load = Image.open("assets/otp.png")
+        render = ImageTk.PhotoImage(load)
+        img = Label(self, image=render)
+        img.image = render
+        img.place(x=0, y=0)
 
         heading = Label(self, text='Device List', fg="#FFFFFF", bg="#292F36", font=Heading)
         heading.place(x=30,y=20)
@@ -469,27 +552,8 @@ class Device(tk.Frame):
         addButton.place(x=130, y=120)
         delButton = Button(self, font=FONT, text="Remove", state=NORMAL, command=lambda: (delete()), bg="#FF6B6B", fg="#ffffff")
         delButton.place(x=290, y=120)
-
-        sendOTPButton = Button(self, font=FONT, text="Send OTP", state=NORMAL, command=lambda: (sendOTP()), bg="#FF6B6B", fg="#ffffff")
-        sendOTPButton.place(x=320, y=120)
-
         buttonset = Button(self, font=FONT, text="Home", command=lambda: controller.show_frame(Main),bg="#FF6B6B", fg="#ffffff")
         buttonset.place(x=370, y=20)
-
-        def sendOTP():
-            global tempOTP
-            tempOTP = random.randint(100000, 999999)
-            print("OTP: "+str(tempOTP))
-            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-                smtp.ehlo()
-                smtp.starttls()
-                smtp.ehlo()
-                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                subject = 'Device verification code: '+str(tempOTP)
-                body = 'Use this code to verify your identity: '+str(tempOTP)
-                msg = f'Subject: {subject}\n\n{body}'
-
-                smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
 
         def refresh():
             listbox.delete(0, tk.END)
