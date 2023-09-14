@@ -34,7 +34,7 @@ BGCOL = "#27374D"
 
 #OTP email settings
 EMAIL_ADDRESS = 'jrgmillan23@gmail.com'
-EMAIL_PASSWORD = 'nzcsyrvmlvvlebno'
+EMAIL_PASSWORD = 'jukphpbakxevdxhs'
 
 #generate temp key
 key = os.urandom(24)
@@ -64,7 +64,7 @@ class SecuroFileApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (Login, Register, Main, Verification, Device):
+        for F in (Login, Register, Main, Contacts, Verification, Device):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -83,7 +83,7 @@ class Login(tk.Frame):
 
         load = Image.open("assets/bg.png")
         render = ImageTk.PhotoImage(load)
-        img = Label(self, image=render)
+        img = Label(self, image=render, borderwidth=0)
         img.image = render
         img.place(x=0, y=0)
 
@@ -146,7 +146,7 @@ class Register(tk.Frame):
 
         load = Image.open("assets/rbg.png")
         render = ImageTk.PhotoImage(load)
-        img = Label(self, image=render)
+        img = Label(self, image=render, borderwidth=0)
         img.image = render
         img.place(x=0, y=0)
 
@@ -231,22 +231,18 @@ class Main(tk.Frame):
 
         heading = Label(self, text='SecuroFile', fg="#FFFFFF", bg="#292F36", font=Heading)
         heading.place(x=30,y=20)
-        btn_encrypt = Button(self, font=FONT, text="ENCRYPT", state=NORMAL, command=lambda: (encrypt_file(key)), fg="#FFFFFF", bg="#4ECDC4")
+        btn_encrypt = Button(self, font=FONT, text="Encrypt", state=NORMAL, command=lambda: (encrypt_file(key)), fg="#FFFFFF", bg="#4ECDC4", borderwidth=0, height=2, width=17)
         btn_encrypt.place(x=30,y=100)
-        btn_decrypt = Button(self, font=FONT, text="DECRYPT", state=NORMAL, command=lambda: (decrypt_file()), fg="#FFFFFF", bg="#FF6B6B")
-        btn_decrypt.place(x=140,y=100)
-        listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=13, font=('Nirmala UI', 16))
-        listbox.place(x=30, y=160)
-        entrybox = Entry(self, width=23, font=('Nirmala UI', 20))
-        entrybox.place(x=30, y=580)
-        addButton = Button(self, font=FONT, text="Add", state=NORMAL, command=lambda: (add()), bg="#50C878", fg="#FFFFFF")
-        addButton.place(x=385, y=580)
-        impButton = Button(self, font=FONT, text="Import", state=NORMAL, command=lambda: (importContact()))
-        impButton.place(x=120, y=630)
-        delButton = Button(self, font=FONT, text="Delete", state=NORMAL, command=lambda: (delete()))
-        delButton.place(x=205, y=630)
-        reButton = Button(self, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
-        reButton.place(x=30, y=630)
+        btn_decrypt = Button(self, font=FONT, text="Open File", state=NORMAL, command=lambda: (decrypt_file()), fg="#FFFFFF", bg="#50C878", borderwidth=0, height=2, width=17)
+        btn_decrypt.place(x=250,y=100)
+        listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=15, font=('Nirmala UI', 16))
+        listbox.place(x=30, y=218)
+
+        lbl_firstname = Label(self, text="Select recieptiens:", font=Small, bd=5, fg="#ffffff", bg="#292f36")
+        lbl_firstname.place(x=25, y=180)
+
+        reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()),  fg="#30A2FF", bg="#292f36", borderwidth=0)
+        reButton.place(x=380, y=180)
         # Using readlines()
         file1 = open('user/contacts.txt', 'r')
         Lines = file1.readlines()
@@ -257,10 +253,12 @@ class Main(tk.Frame):
             count += 1
             listbox.insert(count, line.strip())
 
-        buttonset = Button(self, font=FONT, text="Devices", command=lambda:verifyDevice(),fg="#FFFFFF",bg="#30A2FF")
-        buttonset.place(x=360, y=25)
-        buttonlogout = Button(self, font=FONT, text="Sign Out", command=lambda:clearPDF(), fg="#FFFFFF", bg="#FF6B6B")
-        buttonlogout.place(x=340,y=630)
+        buttoncon = Button(self, font=Small, text="Contacts", command=lambda:controller.show_frame(Contacts), fg="#50C878", bg="#292f36", borderwidth=0)
+        buttoncon.place(x=240, y=30)
+        buttonset = Button(self, font=Small, text="Devices", command=lambda:verifyDevice(), fg="#30A2FF",bg="#292f36", borderwidth=0)
+        buttonset.place(x=320, y=30)
+        buttonlogout = Button(self, font=Small, text="Sign Out", command=lambda:clearPDF(), fg="#FF6B6B", bg="#292f36", borderwidth=0)
+        buttonlogout.place(x=390,y=30)
 
         def verifyDevice():
             if isVerified is True:
@@ -294,59 +292,6 @@ class Main(tk.Frame):
             v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40)
             v2.place(x=480, y=25)
 
-        def add():
-            if re.fullmatch(regex, entrybox.get()):
-                listbox.insert(listbox.size(), entrybox.get())
-
-                all_items = listbox.get(0, tk.END)
-
-                with open('user/contacts.txt', 'w') as f:
-                    for line in all_items:
-                        f.write(line)
-                        f.write('\n')
-
-                print("Email added")
-                tk.messagebox.showinfo(title="SecuroFile", message="Email added.")
-            else:
-                print("Invalid Email")
-                tk.messagebox.showinfo(title="SecuroFile", message="Invalid Email.")
-
-        def importContact():
-            file_path = filedialog.askopenfilename()
-            head, tail = os.path.split(file_path)
-            print("File Name: " + str(tail))
-            print("File Directory: " + str(head))
-            print("File Path: " + str(file_path))
-            # encryption process
-            with open(file_path, 'rb') as fo:
-                contacts = fo.read()
-            with open('user/contacts.txt', 'wb') as fo:
-                fo.write(contacts)
-            file = open('user/contacts.txt', 'r')
-            Lines = file.readlines()
-            count = 0
-            listbox.delete(0, tk.END)
-            for line in Lines:
-                count += 1
-                listbox.insert(count, line.strip())
-
-        def delete():
-            try:
-                print("You deleted: " + listbox.get(listbox.curselection()))
-                listbox.delete(listbox.curselection())
-
-                all_items2 = listbox.get(0, tk.END)
-
-                with open('user/contacts.txt', 'w') as f:
-                    for line in all_items2:
-                        f.write(line)
-                        f.write('\n')
-
-                print("Email deleted")
-                tk.messagebox.showinfo(title="SecuroFile", message="Email deleted.")
-            except:
-                print("No item selected")
-                tk.messagebox.showinfo(title="SecuroFile", message="No item selected.")
         def refresh():
             listbox.delete(0, tk.END)
             # Using readlines()
@@ -470,6 +415,117 @@ class Main(tk.Frame):
             except Exception:
                 traceback.print_exc()
 
+class Contacts(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        self.configure(bg="#292F36")
+
+        load = Image.open("assets/contacts.png")
+        render = ImageTk.PhotoImage(load)
+        img = Label(self, image=render, borderwidth=0)
+        img.image = render
+        img.place(x=0, y=0)
+
+        heading = Label(self, text='Contacts', fg="#FFFFFF", bg="#292F36", font=Heading)
+        heading.place(x=30,y=20)
+
+        impButton = Button(self, font=Small, text="Import Contacts", state=NORMAL, command=lambda: (importContact()), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        impButton.place(x=320, y=30)
+
+        buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        buttonset.place(x=25, y=80)
+
+        reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()),  fg="#30A2FF", bg="#292f36", borderwidth=0)
+        reButton.place(x=380, y=195)
+
+        listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=13, font=('Nirmala UI', 16))
+        listbox.place(x=30, y=230)
+        entrybox = Entry(self, width=23, font=('Nirmala UI', 20))
+        entrybox.place(x=30, y=140)
+        addButton = Button(self, font=FONT, text="Add", state=NORMAL, command=lambda: (add()), bg="#50C878", fg="#FFFFFF", borderwidth=0)
+        addButton.place(x=390, y=140)
+
+        delButton = Button(self, font=FONT, text="Delete Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
+        delButton.place(x=30, y=650)
+
+        # Using readlines()
+        file1 = open('user/contacts.txt', 'r')
+        Lines = file1.readlines()
+
+        count = 0
+        # Strips the newline character
+        for line in Lines:
+            count += 1
+            listbox.insert(count, line.strip())
+
+        def add():
+            if re.fullmatch(regex, entrybox.get()):
+                listbox.insert(listbox.size(), entrybox.get())
+
+                all_items = listbox.get(0, tk.END)
+
+                with open('user/contacts.txt', 'w') as f:
+                    for line in all_items:
+                        f.write(line)
+                        f.write('\n')
+
+                print("Email added")
+                entrybox.delete(0, 'end')
+                tk.messagebox.showinfo(title="SecuroFile", message="Email added.")
+            else:
+                print("Invalid Email")
+                tk.messagebox.showinfo(title="SecuroFile", message="Invalid Email.")
+
+        def importContact():
+            file_path = filedialog.askopenfilename()
+            head, tail = os.path.split(file_path)
+            print("File Name: " + str(tail))
+            print("File Directory: " + str(head))
+            print("File Path: " + str(file_path))
+            # encryption process
+            with open(file_path, 'rb') as fo:
+                contacts = fo.read()
+            with open('user/contacts.txt', 'wb') as fo:
+                fo.write(contacts)
+            file = open('user/contacts.txt', 'r')
+            Lines = file.readlines()
+            count = 0
+            listbox.delete(0, tk.END)
+            for line in Lines:
+                count += 1
+                listbox.insert(count, line.strip())
+
+        def delete():
+            try:
+                print("You deleted: " + listbox.get(listbox.curselection()))
+                listbox.delete(listbox.curselection())
+
+                all_items2 = listbox.get(0, tk.END)
+
+                with open('user/contacts.txt', 'w') as f:
+                    for line in all_items2:
+                        f.write(line)
+                        f.write('\n')
+
+                print("Email deleted")
+                tk.messagebox.showinfo(title="SecuroFile", message="Email deleted.")
+            except:
+                print("No item selected")
+                tk.messagebox.showinfo(title="SecuroFile", message="No item selected.")
+        def refresh():
+            listbox.delete(0, tk.END)
+            # Using readlines()
+            file1 = open('user/contacts.txt', 'r')
+            Lines = file1.readlines()
+
+            count = 0
+            # Strips the newline character
+            for line in Lines:
+                count += 1
+                listbox.insert(count, line.strip())
+            print("Contacts refreshed")
+
 class Verification(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -477,7 +533,7 @@ class Verification(tk.Frame):
 
         load = Image.open("assets/otp.png")
         render = ImageTk.PhotoImage(load)
-        img = Label(self, image=render)
+        img = Label(self, image=render, borderwidth=0)
         img.image = render
         img.place(x=0, y=0)
 
@@ -485,8 +541,9 @@ class Verification(tk.Frame):
         heading.place(x=30,y=20)
         lbl_drotp = Label(self, text="Enter OTP Code sent to "+current_email, font=Small, fg="#FFFFFF", bg="#292f36")
         lbl_drotp.place(x=80, y=300)
-        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=150, y=500)
+
+        lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
+        lbl_result.place(x=195, y=340)
 
         fird = StringVar()
         secd = StringVar()
@@ -494,24 +551,26 @@ class Verification(tk.Frame):
         foud = StringVar()
         fifd = StringVar()
         sixd = StringVar()
-        fird = Entry(self, font=OTP, textvariable=fird, width=3)
-        fird.place(x=75, y=390)
-        secd = Entry(self, font=OTP, textvariable=secd, width=3)
-        secd.place(x=130, y=390)
-        thrd = Entry(self, font=OTP, textvariable=thrd, width=3)
-        thrd.place(x=185, y=390)
-        foud = Entry(self, font=OTP, textvariable=foud, width=3)
-        foud.place(x=240, y=390)
-        fifd = Entry(self, font=OTP, textvariable=fifd, width=3)
-        fifd.place(x=295, y=390)
-        sixd = Entry(self, font=OTP, textvariable=sixd, width=3)
-        sixd.place(x=350, y=390)
+        firde = Entry(self, font=OTP, textvariable=fird, width=3)
+        firde.place(x=75, y=390)
+        secde = Entry(self, font=OTP, textvariable=secd, width=3)
+        secde.place(x=130, y=390)
+        thrde = Entry(self, font=OTP, textvariable=thrd, width=3)
+        thrde.place(x=185, y=390)
+        foude = Entry(self, font=OTP, textvariable=foud, width=3)
+        foude.place(x=240, y=390)
+        fifde = Entry(self, font=OTP, textvariable=fifd, width=3)
+        fifde.place(x=295, y=390)
+        sixde = Entry(self, font=OTP, textvariable=sixd, width=3)
+        sixde.place(x=350, y=390)
 
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=150, y=500)
         sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
         sendOTPButton.place(x=185, y=530)
         buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
         buttonset.place(x=25, y=80)
-        buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: controller.show_frame(Verification), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
+        buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(firde.get(), secde.get(), thrde.get(), foude.get(), fifde.get(), sixde.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
         buttonproceed.place(x=70, y=580)
 
         def sendOTP():
@@ -528,32 +587,49 @@ class Verification(tk.Frame):
                 msg = f'Subject: {subject}\n\n{body}'
                 smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
 
+        def verifyOTP(fird, secd, thrd, foud, fifd, sixd, lbl_result):
+            typedOTP = str(fird)+str(secd)+str(thrd)+str(foud)+str(fifd)+str(sixd)
+            print(typedOTP)
+            if typedOTP == str(tempOTP):
+                firde.delete(0, 'end')
+                secde.delete(0, 'end')
+                thrde.delete(0, 'end')
+                foude.delete(0, 'end')
+                fifde.delete(0, 'end')
+                sixde.delete(0, 'end')
+                global isVerified
+                isVerified = True
+                controller.show_frame(Device)
+            else:
+                lbl_result.config(text="Invalid OTP", fg="orange")
+
+
 class Device(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.configure(bg="#292F36")
 
-        load = Image.open("assets/otp.png")
+        load = Image.open("assets/devices.png")
         render = ImageTk.PhotoImage(load)
-        img = Label(self, image=render)
+        img = Label(self, image=render, borderwidth=0)
         img.image = render
         img.place(x=0, y=0)
 
         heading = Label(self, text='Device List', fg="#FFFFFF", bg="#292F36", font=Heading)
         heading.place(x=30,y=20)
         heading1 = Label(self, text="Current Device: " + getHardwareId(), fg="#FFFFFF", bg="#292F36", font=('Nirmala UI', 9, 'bold'))
-        heading1.place(x=30,y=80)
-        listbox = Listbox(self, width=65, height=30)
-        listbox.place(x=35, y=180)
-        listbox.insert(0, "REFRESH TO REVEAL DEVICES")
-        reButton = Button(self, font=FONT, text="Refresh", state=NORMAL, command=lambda: (refresh()))
-        reButton.place(x=35, y=120)
-        addButton = Button(self, font=FONT, text="Register Device", state=NORMAL,command=lambda: (regdev(getHardwareId())),bg="#50C878", fg="#FFFFFF")
-        addButton.place(x=130, y=120)
-        delButton = Button(self, font=FONT, text="Remove", state=NORMAL, command=lambda: (delete()), bg="#FF6B6B", fg="#ffffff")
-        delButton.place(x=290, y=120)
-        buttonset = Button(self, font=FONT, text="Home", command=lambda: controller.show_frame(Main),bg="#FF6B6B", fg="#ffffff")
-        buttonset.place(x=370, y=20)
+        heading1.place(x=30,y=130)
+        listbox = Listbox(self, width=68, height=25)
+        listbox.place(x=30, y=230)
+        listbox.insert(0, "Refresh to Reveal Devices")
+        reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        reButton.place(x=380, y=195)
+        addButton = Button(self, font=FONT, text="Register Device", state=NORMAL,command=lambda: (regdev(getHardwareId())),bg="#50C878", fg="#FFFFFF", borderwidth=0)
+        addButton.place(x=30, y=175)
+        delButton = Button(self, font=FONT, text="Delete Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
+        delButton.place(x=30, y=650)
+        buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        buttonset.place(x=25, y=80)
 
         def refresh():
             listbox.delete(0, tk.END)
