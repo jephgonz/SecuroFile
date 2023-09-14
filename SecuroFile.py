@@ -2,6 +2,8 @@
 import os
 import re
 import subprocess
+import random2 as random
+import smtplib
 import tkinter as tk
 import zipfile
 from tkinter import *
@@ -20,12 +22,18 @@ regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
 list_files = ['cache/key', 'cache/enc', 'cache/recipient']
 user_id = ''
 current_email = ''
+isVerified = False
+tempOTP = 000000
 Heading = ('Nirmala UI', 24, 'bold')
 FONT = ('Nirmala UI', 14, 'bold')
 FONTR = ('Nirmala UI', 14)
 Small = ('Nirmala UI', 11, 'bold')
 SmallR = ('Nirmala UI', 11)
 BGCOL = "#27374D"
+
+#OTP email settings
+EMAIL_ADDRESS = 'jrgmillan23@gmail.com'
+EMAIL_PASSWORD = 'nzcsyrvmlvvlebno'
 
 #generate temp key
 key = os.urandom(24)
@@ -98,6 +106,7 @@ class Login(tk.Frame):
         button2.place(x=120, y=500)
 
         def login_user(EMAIL, PASS, lbl_result):
+            print("Verification: "+str(isVerified))
             database()
             print("Email: " + str(EMAIL))
             print("Password: " + str(PASS))
@@ -255,6 +264,10 @@ class Main(tk.Frame):
         def clearPDF():
             v1 = pdf.ShowPdf()
             v2 = v1.img_object_li.clear()
+            global isVerified
+            isVerified = False
+            global tempOTP
+            tempOTP = 000000
             controller.show_frame(Login)
 
         def showPDF(file_name):
@@ -456,8 +469,27 @@ class Device(tk.Frame):
         addButton.place(x=130, y=120)
         delButton = Button(self, font=FONT, text="Remove", state=NORMAL, command=lambda: (delete()), bg="#FF6B6B", fg="#ffffff")
         delButton.place(x=290, y=120)
+
+        sendOTPButton = Button(self, font=FONT, text="Send OTP", state=NORMAL, command=lambda: (sendOTP()), bg="#FF6B6B", fg="#ffffff")
+        sendOTPButton.place(x=320, y=120)
+
         buttonset = Button(self, font=FONT, text="Home", command=lambda: controller.show_frame(Main),bg="#FF6B6B", fg="#ffffff")
         buttonset.place(x=370, y=20)
+
+        def sendOTP():
+            global tempOTP
+            tempOTP = random.randint(100000, 999999)
+            print("OTP: "+str(tempOTP))
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                subject = 'Device verification code: '+str(tempOTP)
+                body = 'Use this code to verify your identity: '+str(tempOTP)
+                msg = f'Subject: {subject}\n\n{body}'
+
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
 
         def refresh():
             listbox.delete(0, tk.END)
