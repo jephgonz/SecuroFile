@@ -280,14 +280,17 @@ class Main(tk.Frame):
 
         def clearPDF():
             v1 = pdf.ShowPdf()
-            v2 = v1.img_object_li.clear()
+            v1.img_object_li.clear()
             global isVerified
             isVerified = False
             global tempOTP
             tempOTP = 000000
+            os.remove("cache/raw")
             controller.show_frame(Login)
 
         def showPDF(file_name):
+            v1 = pdf.ShowPdf()
+            v1.img_object_li.clear()
             v1 = pdf.ShowPdf()
             v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40)
             v2.place(x=480, y=25)
@@ -407,6 +410,8 @@ class Main(tk.Frame):
                                 isDecrypted = True
                                 showPDF("cache/raw")
                 if isDecrypted:
+                    for file in list_files:
+                        os.remove(file)
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
