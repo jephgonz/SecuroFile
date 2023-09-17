@@ -285,7 +285,10 @@ class Main(tk.Frame):
             isVerified = False
             global tempOTP
             tempOTP = 000000
-            os.remove("cache/raw")
+            try:
+                os.remove("cache/raw")
+            except:
+                print("Nothing to remove")
             controller.show_frame(Login)
 
         def showPDF(file_name):
