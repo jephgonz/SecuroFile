@@ -68,7 +68,7 @@ class SecuroFileApp(tk.Tk):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(Login)
+        self.show_frame(Verification)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
@@ -547,8 +547,8 @@ class Verification(tk.Frame):
 
         heading = Label(self, text='Verification', fg="#ffffFF", bg="#292f36", font=Heading)
         heading.place(x=30,y=20)
-        lbl_drotp = Label(self, text="Enter OTP Code sent to "+current_email, font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=80, y=300)
+        lbl_drotp = Label(self, text="Enter OTP Code sent to your email", font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=115, y=300)
 
         lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
         lbl_result.place(x=195, y=340)
