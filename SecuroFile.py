@@ -68,7 +68,7 @@ class SecuroFileApp(tk.Tk):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(Verification)
+        self.show_frame(Login)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
