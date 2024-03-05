@@ -45,7 +45,7 @@ with open('cache/key', 'wb') as filekey:
 def database():
     print("Database Connection Established")
     global con, cursor
-    con = mysql.connector.connect(host="185.249.224.52", user="u492876200_jeptha", password="N11t47mu38", database="u492876200_jeptha")
+    con = mysql.connector.connect(host="capstonedb-capstone.a.aivencloud.com", port="23958", user="avnadmin", password="AVNS_b4dbBAXNWbKgOOtz31T", database="capstone")
     cursor = con.cursor()
 
 def getHardwareId():
