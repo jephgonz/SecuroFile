@@ -101,7 +101,7 @@ class Login(tk.Frame):
         pass1.place(x=70, y=350)
         lbl_result = Label(self, text="", font=Small, fg="#FFFFFF", bg=BGCOL)
         lbl_result.place(x=70, y=390)
-        btn_login = Button(self, font=FONT, text="Sign In", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
+        btn_login = Button(self, font=FONT, text="Log In", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
         btn_login.place(x=120, y=450)
         button2 = Button(self, font=FONT, text="Register", command=lambda: controller.show_frame(Register), fg="#000000", bg="#DDE6ED", height=1, width=20)
         button2.place(x=120, y=500)
@@ -257,7 +257,7 @@ class Main(tk.Frame):
         buttoncon.place(x=240, y=30)
         buttonset = Button(self, font=Small, text="Devices", command=lambda:verifyDevice(), fg="#30A2FF",bg="#292f36", borderwidth=0)
         buttonset.place(x=320, y=30)
-        buttonlogout = Button(self, font=Small, text="Sign Out", command=lambda:clearPDF(), fg="#FF6B6B", bg="#292f36", borderwidth=0)
+        buttonlogout = Button(self, font=Small, text="Log Out", command=lambda:clearPDF(), fg="#FF6B6B", bg="#292f36", borderwidth=0)
         buttonlogout.place(x=390,y=30)
 
         def verifyDevice():
