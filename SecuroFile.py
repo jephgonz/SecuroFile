@@ -454,7 +454,7 @@ class Contacts(tk.Frame):
         addButton = Button(self, font=FONT, text="Add", state=NORMAL, command=lambda: (add()), bg="#50C878", fg="#FFFFFF", borderwidth=0)
         addButton.place(x=390, y=140)
 
-        delButton = Button(self, font=FONT, text="Delete Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
+        delButton = Button(self, font=FONT, text="Remove Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
         delButton.place(x=30, y=650)
 
         # Using readlines()
@@ -634,7 +634,7 @@ class Device(tk.Frame):
         reButton.place(x=380, y=195)
         addButton = Button(self, font=FONT, text="Register Device", state=NORMAL,command=lambda: (regdev(getHardwareId())),bg="#50C878", fg="#FFFFFF", borderwidth=0)
         addButton.place(x=30, y=175)
-        delButton = Button(self, font=FONT, text="Delete Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
+        delButton = Button(self, font=FONT, text="Remove Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
         delButton.place(x=30, y=650)
         buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
         buttonset.place(x=25, y=80)
