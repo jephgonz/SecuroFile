@@ -413,8 +413,8 @@ class Main(tk.Frame):
                                 isDecrypted = True
                                 showPDF("cache/raw")
                 if isDecrypted:
-                    for file in list_files:
-                        os.remove(file)
+                    #for file in list_files:
+                    #    os.remove(file)
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
