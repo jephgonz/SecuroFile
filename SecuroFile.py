@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import random2 as random
+from email.message import EmailMessage
 import smtplib
 import tkinter as tk
 import zipfile
@@ -15,6 +16,7 @@ from Crypto.Cipher import AES
 import traceback
 from PIL import Image, ImageTk
 from tkPDFViewer2 import tkPDFViewer as pdf
+from pathlib import Path
 
 #global variables
 uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
@@ -265,6 +267,47 @@ class Main(tk.Frame):
         buttonlogout = Button(self, font=Small, text="Log Out", command=lambda:clearPDF(), fg="#FF6B6B", bg="#292f36", borderwidth=0)
         buttonlogout.place(x=390,y=30)
 
+        def sendtorec(recipients, current_email, fileenc):
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                recipient = []
+                for index in recipients:
+                    print(index)
+                    recipient.append(index)
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+
+                queryable = "SELECT * FROM `users` WHERE email='" + current_email + "'"
+                cursor.execute(queryable)
+                table = cursor.fetchall()
+                name = ''
+                for row in table:
+                    print(row[1])
+                    name = row[1]
+
+                to_email = recipient
+
+                if type(to_email) == str:
+                    to_email_str = to_email
+                else:
+                    to_email_str = ", ".join(to_email)
+
+                msg = EmailMessage()
+                msg['Subject'] = name +' sent an encrypted file'
+                msg['From'] = name + ' via SecuroFile'
+                msg['To'] = to_email_str
+                msg.set_content('Download the attached file and open with SecuroFile')
+
+                epath = Path(fileenc)
+                with epath.open("rb") as fp:
+                    msg.add_attachment(
+                        fp.read(),
+                        maintype="plain", subtype="plain",
+                        filename=epath.name)
+
+                smtp.sendmail(EMAIL_ADDRESS, recipient, msg.as_string())
+
         def verifyDevice():
             if isVerified is True:
                 controller.show_frame(Device)
@@ -277,10 +320,14 @@ class Main(tk.Frame):
                     smtp.starttls()
                     smtp.ehlo()
                     smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                    subject = 'Device verification code: ' + str(tempOTP)
-                    body = 'Use this code to verify your identity: ' + str(tempOTP)
-                    msg = f'Subject: {subject}\n\n{body}'
-                    smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
+
+                    msg = EmailMessage()
+                    msg['Subject'] = 'Device verification code: ' + str(tempOTP)
+                    msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                    msg['To'] = current_email
+                    msg.set_content('Use this code to verify your identity: ' + str(tempOTP))
+
+                    smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
                 controller.show_frame(Verification)
 
         def clearPDF():
@@ -370,6 +417,7 @@ class Main(tk.Frame):
                     for line in emailhashed:
                         f.write(line)
                         f.write('\n')
+
                 print("Email(s) submitted")
                 #summary of file selected
                 file_path = filedialog.askopenfilename()
@@ -378,6 +426,8 @@ class Main(tk.Frame):
                 print("File Name: " + str(tail))
                 print("File Directory: " + str(head))
                 print("File Path: " + str(file_path))
+                fileenc = file_path.replace(ext, '.enc')
+                print("Encrypted File Path: " + fileenc)
                 #encryption process
                 with open(file_path, 'rb') as fo:
                     plaintext1 = fo.read()
@@ -386,6 +436,7 @@ class Main(tk.Frame):
                     fo.write(enc)
                 mergeenc(head,root)
                 print("Succesfully Encrypted!")
+                sendtorec(email, current_email, fileenc)
                 tk.messagebox.showinfo(title="SecuroFile", message="Successfully Encrypted!")
             except Exception:
                 traceback.print_exc()
