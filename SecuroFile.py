@@ -294,7 +294,7 @@ class Main(tk.Frame):
                     to_email_str = ", ".join(to_email)
 
                 msg = EmailMessage()
-                msg['Subject'] = name +' sent an encrypted file'
+                msg['Subject'] = name +' sent you an encrypted file'
                 msg['From'] = name + ' via SecuroFile'
                 msg['To'] = to_email_str
                 msg.set_content('Download the attached file and open with SecuroFile')
@@ -452,14 +452,18 @@ class Main(tk.Frame):
                 #decryption process
                 splitenc(file_path)
                 isDecrypted = False
+                emailmatch = False
+                devicematch = False
                 for x in getRecipient():
                     if bcrypt.checkpw(current_email.encode(), x.encode()):
+                        emailmatch = True
                         database()
                         queryable = "SELECT deviceID FROM `user_devices` WHERE email = '" + current_email + "'"
                         cursor.execute(queryable)
                         table = cursor.fetchall()
                         for row in table:
                             if row[0] == getHardwareId():
+                                devicematch = True
                                 with open("cache/enc", 'rb') as fo1:
                                     ciphertext = fo1.read()
                                 with open("cache/key", 'rb') as fo2:
@@ -477,8 +481,12 @@ class Main(tk.Frame):
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
-                    print("Access Denied!")
-                    tk.messagebox.showinfo(title="SecuroFile", message="Access Denied!")
+                    if not emailmatch and not devicematch:
+                        print("You are not authorized to open this file.")
+                        tk.messagebox.showinfo(title="Access Denied!", message="You are not authorized to open this file.")
+                    elif emailmatch and not devicematch:
+                        print("Please make sure to use your registered device in opening this file.")
+                        tk.messagebox.showinfo(title="Access Denied!", message="Please make sure to use your registered device in opening this file.")
             except Exception:
                 traceback.print_exc()
 
@@ -612,24 +620,9 @@ class Verification(tk.Frame):
         lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
         lbl_result.place(x=195, y=340)
 
-        fird = StringVar()
-        secd = StringVar()
-        thrd = StringVar()
-        foud = StringVar()
-        fifd = StringVar()
-        sixd = StringVar()
-        firde = Entry(self, font=OTP, textvariable=fird, width=3)
-        firde.place(x=75, y=390)
-        secde = Entry(self, font=OTP, textvariable=secd, width=3)
-        secde.place(x=130, y=390)
-        thrde = Entry(self, font=OTP, textvariable=thrd, width=3)
-        thrde.place(x=185, y=390)
-        foude = Entry(self, font=OTP, textvariable=foud, width=3)
-        foude.place(x=240, y=390)
-        fifde = Entry(self, font=OTP, textvariable=fifd, width=3)
-        fifde.place(x=295, y=390)
-        sixde = Entry(self, font=OTP, textvariable=sixd, width=3)
-        sixde.place(x=350, y=390)
+        encode = StringVar()
+        entcode = Entry(self, font=OTP, textvariable=encode, width=22, justify='center')
+        entcode.place(x=75, y=390)
 
         lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
         lbl_drotp.place(x=150, y=500)
@@ -637,7 +630,7 @@ class Verification(tk.Frame):
         sendOTPButton.place(x=185, y=530)
         buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
         buttonset.place(x=25, y=80)
-        buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(firde.get(), secde.get(), thrde.get(), foude.get(), fifde.get(), sixde.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
+        buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(entcode.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
         buttonproceed.place(x=70, y=580)
 
         def sendOTP():
@@ -654,16 +647,11 @@ class Verification(tk.Frame):
                 msg = f'Subject: {subject}\n\n{body}'
                 smtp.sendmail(EMAIL_ADDRESS, current_email, msg)
 
-        def verifyOTP(fird, secd, thrd, foud, fifd, sixd, lbl_result):
-            typedOTP = str(fird)+str(secd)+str(thrd)+str(foud)+str(fifd)+str(sixd)
+        def verifyOTP(encode, lbl_result):
+            typedOTP = str(encode)
             print(typedOTP)
             if typedOTP == str(tempOTP):
-                firde.delete(0, 'end')
-                secde.delete(0, 'end')
-                thrde.delete(0, 'end')
-                foude.delete(0, 'end')
-                fifde.delete(0, 'end')
-                sixde.delete(0, 'end')
+                entcode.delete(0, 'end')
                 global isVerified
                 isVerified = True
                 controller.show_frame(Device)
