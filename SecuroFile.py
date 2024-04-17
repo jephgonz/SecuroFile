@@ -311,9 +311,9 @@ class Main(tk.Frame):
                 listbox.insert(count, line.strip())
             print("Contacts refreshed")
 
-        def mergeenc(file_name):
+        def mergeenc(directory,file_name):
             print("Merging")
-            with zipfile.ZipFile('encrypted/' + file_name + '.enc', 'w') as zipF:
+            with zipfile.ZipFile(directory + '/' + file_name + '.enc', 'w') as zipF:
                 for file in list_files:
                     zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
 
@@ -352,6 +352,7 @@ class Main(tk.Frame):
                 emailhashed = []
                 for index in listbox.curselection():
                     email.insert(index, listbox.get(index))
+                    print('Email(s) selected: '+listbox.get(index))
                 for index in email:
                     print(index)
                     index = str(bcrypt.hashpw(index.encode('utf8'), bcrypt.gensalt()).decode("utf-8"))
@@ -377,9 +378,9 @@ class Main(tk.Frame):
                 enc = encrypt(plaintext1, key)
                 with open("cache/enc", 'wb') as fo:
                     fo.write(enc)
-                mergeenc(root)
+                mergeenc(head,root)
                 print("Succesfully Encrypted!")
-                tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Encrypted!")
+                tk.messagebox.showinfo(title="SecuroFile", message="Successfully Encrypted!")
             except Exception:
                 traceback.print_exc()
 
