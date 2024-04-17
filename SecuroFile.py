@@ -38,8 +38,12 @@ EMAIL_PASSWORD = 'jukphpbakxevdxhs'
 
 #generate temp key
 key = os.urandom(24)
-with open('cache/key', 'wb') as filekey:
-    filekey.write(key)
+
+def gennewkey():
+    global key
+    key = os.urandom(24)
+    with open('cache/key', 'wb') as filekey:
+        filekey.write(key)
 
 #global functions
 def database():
@@ -132,6 +136,7 @@ class Login(tk.Frame):
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
                         pass1.delete(0, 'end')
                         controller.show_frame(Main)
+                        gennewkey()
                     else:
                         lbl_result.config(text="Password incorrect", fg="red")
                 else:
@@ -287,6 +292,7 @@ class Main(tk.Frame):
             tempOTP = 000000
             try:
                 os.remove("cache/raw")
+                os.remove("cache/key")
             except:
                 print("Nothing to remove")
             controller.show_frame(Login)
@@ -414,8 +420,9 @@ class Main(tk.Frame):
                                 isDecrypted = True
                                 showPDF("cache/raw")
                 if isDecrypted:
-                    #for file in list_files:
-                    #    os.remove(file)
+                    for file in list_files:
+                        os.remove(file)
+                    gennewkey()
                     print("Succesfully Decrypted!")
                     tk.messagebox.showinfo(title="SecuroFile", message="Succesfully Decrypted!")
                 else:
