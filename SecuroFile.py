@@ -109,14 +109,22 @@ class Login(tk.Frame):
         lbl_result = Label(self, text="", font=Small, fg="#FFFFFF", bg=BGCOL)
         lbl_result.place(x=50, y=390)
 
-        button3 = Button(self, font=Small, text="Forgotten your password?", command=lambda: controller.show_frame(AskEmail), fg="#30A2FF",
+        button3 = Button(self, font=Small, text="Forgotten your password?", command=lambda: retoforpas(), fg="#30A2FF",
                          bg="#27374D", height=1, width=20, borderwidth=0)
         button3.place(x=50, y=420)
 
         btn_login = Button(self, font=FONT, text="Log In", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
         btn_login.place(x=120, y=480)
-        button2 = Button(self, font=FONT, text="Register", command=lambda: controller.show_frame(Register), fg="#000000", bg="#DDE6ED", height=1, width=20)
+        button2 = Button(self, font=FONT, text="Register", command=lambda: retoreg(), fg="#000000", bg="#DDE6ED", height=1, width=20)
         button2.place(x=120, y=530)
+
+        def retoforpas():
+            controller.show_frame(AskEmail)
+            lbl_result.config(text="", fg="red")
+
+        def retoreg():
+            controller.show_frame(Register)
+            lbl_result.config(text="", fg="red")
 
         def login_user(EMAIL, PASS, lbl_result):
             print("Verification: "+str(isVerified))
@@ -205,9 +213,18 @@ class Register(tk.Frame):
                                                             PASS.get(), RPASS.get(), lbl_result, btn_register),
                               fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
         btn_register.place(x=120, y=550)
-        button2 = Button(self, font=Small, text="Login", command=lambda: controller.show_frame(Login), fg="#30A2FF",
+        button2 = Button(self, font=Small, text="Login", command=lambda: retologin(), fg="#30A2FF",
                          bg="#ffffff", height=1, width=4, borderwidth=0)
         button2.place(x=305, y=602)
+
+        def retologin():
+            controller.show_frame(Login)
+            fname.delete(0, 'end')
+            mname.delete(0, 'end')
+            lname.delete(0, 'end')
+            email.delete(0, 'end')
+            pass1.delete(0, 'end')
+            rpass1.delete(0, 'end')
 
         def register_user(FNAME, MNAME, LNAME, EMAIL, PASS, RPASS, lbl_result, btn_register):
             database()
@@ -240,7 +257,7 @@ class Main(tk.Frame):
 
         self.configure(bg="#292F36")
         v1=pdf.ShowPdf()
-        v2=v1.pdf_view(self,pdf_location="",width=95, height=40)
+        v2=v1.pdf_view(self,pdf_location="",width=90, height=40)
         v2.place(x=480,y=25)
 
         heading = Label(self, text='SecuroFile', fg="#FFFFFF", bg="#292F36", font=Heading)
