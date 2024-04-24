@@ -908,12 +908,12 @@ class ResetPassword(tk.Frame):
 
         pass1L = Label(self, text="New password", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
         pass1L.place(x=40, y=200)
-        pasS1 = Entry(self, font=FONTR, textvariable=pass1, width=36)
+        pasS1 = Entry(self, font=FONTR, textvariable=pass1, width=36, show="*")
         pasS1.place(x=50, y=250)
 
         pass2L = Label(self, text="Confirm password", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
         pass2L.place(x=40, y=280)
-        pasS2 = Entry(self, font=FONTR, textvariable=pass2, width=36)
+        pasS2 = Entry(self, font=FONTR, textvariable=pass2, width=36, show="*")
         pasS2.place(x=50, y=330)
 
         lbl_result = Label(self, text="", font=Small, fg="#FFFFFF", bg=BGCOL)
@@ -928,7 +928,7 @@ class ResetPassword(tk.Frame):
             database()
             print("pass1: " + str(pass1))
             print("pass2: " + str(pass2))
-            if pass1 == "" or pass2 == "":
+            if pass1 != pass2:
                 lbl_result.config(text="Password does not match", fg="orange")
             else:
                 global current_email
