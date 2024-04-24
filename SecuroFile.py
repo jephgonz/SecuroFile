@@ -260,7 +260,7 @@ class Main(tk.Frame):
 
         self.configure(bg="#292F36")
         v1=pdf.ShowPdf()
-        v2=v1.pdf_view(self,pdf_location="", width=90, height=40)
+        v2=v1.pdf_view(self,pdf_location="", width=95, height=40)
         v2.place(x=480,y=25)
 
         heading = Label(self, text='SecuroFile', fg="#FFFFFF", bg="#292F36", font=Heading)
@@ -375,7 +375,7 @@ class Main(tk.Frame):
             v1 = pdf.ShowPdf()
             v1.img_object_li.clear()
             v1 = pdf.ShowPdf()
-            v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40, zoomDPI=100)
+            v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40, zoomDPI=95)
             v2.place(x=480, y=25)
 
         def refresh():
