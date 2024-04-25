@@ -17,7 +17,6 @@ import traceback
 from PIL import Image, ImageTk
 from pathlib import Path
 from pynput import keyboard
-from pynput import mouse
 import sys
 sys.path.append('../customlib')
 from customlib import tkPDFViewer as pdf
@@ -63,21 +62,11 @@ def getHardwareId():
     this = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
     return this
 
-def on_move(x, y):
-    print('Pointer moved to {0}'.format(
-        (x, y)))
-
-def on_click(x, y, button, pressed):
-    print('{0} at {1}'.format(
-        'Pressed' if pressed else 'Released',
-        (x, y)))
-
-def on_scroll(x, y, dx, dy):
-    print('Scrolled {0} at {1}'.format(
-        'down' if dy < 0 else 'up',
-        (x, y)))
-
+#keyboard listener
 def on_press(key):
+    if key == keyboard.Key.print_screen:
+        print('Printscreen is prohibited')
+        v1.img_object_li.clear()
     try:
         print('alphanumeric key {0} pressed'.format(
             key.char))
@@ -89,8 +78,9 @@ def on_release(key):
     print('{0} released'.format(
         key))
 
-listener1 = mouse.Listener(on_move=on_move, on_click=on_click, on_scroll=on_scroll)
-listener2 = keyboard.Listener(on_press=on_press, on_release=on_release)
+listener1 = keyboard.Listener(on_press=on_press, on_release=on_release)
+
+v1=pdf.ShowPdf()
 
 #main app code
 class SecuroFileApp(tk.Tk):
@@ -185,7 +175,6 @@ class Login(tk.Frame):
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
                         pass1.delete(0, 'end')
                         listener1.start()
-                        listener2.start()
                         print("Listener Start")
                         controller.show_frame(Main)
                         gennewkey()
@@ -314,7 +303,7 @@ class Main(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.configure(bg="#292F36")
-        v1=pdf.ShowPdf()
+
         v2=v1.pdf_view(self,pdf_location="", width=95, height=40)
         v2.place(x=480,y=25)
 
@@ -427,7 +416,6 @@ class Main(tk.Frame):
             controller.show_frame(Login)
             print("Listener Stop")
             listener1.stop()
-            listener2.stop()
 
         def showPDF(file_name):
             v1 = pdf.ShowPdf()
@@ -1029,4 +1017,3 @@ class ResetPassword(tk.Frame):
 app = SecuroFileApp()
 app.mainloop()
 listener1.join()
-listener2.join()
