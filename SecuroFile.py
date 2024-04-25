@@ -166,7 +166,7 @@ class Login(tk.Frame):
                             msg['Subject'] = 'Login alert'
                             msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
                             msg['To'] = current_email
-                            msg.set_content('Your account was recently logged into a Device: ' + getHardwareId() + '.')
+                            msg.set_content('Your account was recently logged into a device: ' + getHardwareId() + '.')
                             smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
                     else:
                         lbl_result.config(text="Password incorrect", fg="red")
@@ -260,6 +260,17 @@ class Register(tk.Frame):
                         cursor.close()
                         con.close()
                         btn_register['state'] = DISABLED
+                        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                            smtp.ehlo()
+                            smtp.starttls()
+                            smtp.ehlo()
+                            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                            msg = EmailMessage()
+                            msg['Subject'] = 'New User Registration'
+                            msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                            msg['To'] = current_email
+                            msg.set_content('This email is to confirm that we have received your registration information.')
+                            smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
                 else:
                     lbl_result.config(text="Password does not match!", fg="red")
 
