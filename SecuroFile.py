@@ -9,6 +9,7 @@ import tkinter as tk
 import zipfile
 from tkinter import *
 from tkinter import filedialog
+from tkinter import messagebox
 import bcrypt
 import mysql.connector
 from Crypto import Random
@@ -1015,5 +1016,16 @@ class ResetPassword(tk.Frame):
 
 #start app code
 app = SecuroFileApp()
+def callback():
+    if messagebox.askokcancel("Quit", "Do you really wish to quit?"):
+        app.destroy()
+        print("Listener Stop")
+        listener1.stop()
+
+app.protocol("WM_DELETE_WINDOW", callback)
+app.iconbitmap("icon.ico")
 app.mainloop()
-listener1.join()
+try:
+    listener1.join()
+except:
+    print("Process halted")
