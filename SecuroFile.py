@@ -491,8 +491,8 @@ class Main(tk.Frame):
                     for line in emailhashed:
                         f.write(line)
                         f.write('\n')
-
                 print("Email(s) submitted")
+
                 #summary of file selected
                 file_path = filedialog.askopenfilename()
                 head, tail = os.path.split(file_path)
