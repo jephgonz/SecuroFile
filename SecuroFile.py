@@ -1012,6 +1012,7 @@ class ResetPassword(tk.Frame):
                 con.close()
                 pasS1.delete(0, 'end')
                 pasS2.delete(0, 'end')
+                tk.messagebox.showinfo(title="SecuroFile", message="Password changed successfully!")
                 controller.show_frame(Login)
 
 #start app code
