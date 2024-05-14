@@ -68,18 +68,10 @@ def on_press(key):
     if key == keyboard.Key.print_screen:
         print('Printscreen is prohibited')
         v1.img_object_li.clear()
-    try:
-        print('alphanumeric key {0} pressed'.format(
-            key.char))
-    except AttributeError:
-        print('special key {0} pressed'.format(
-            key))
 
-def on_release(key):
-    print('{0} released'.format(
-        key))
-
-listener1 = keyboard.Listener(on_press=on_press, on_release=on_release)
+listener1 = keyboard.Listener(on_press=on_press)
+print("Listener Start")
+listener1.start()
 
 v1=pdf.ShowPdf()
 
@@ -175,8 +167,6 @@ class Login(tk.Frame):
                         print("User ID: " + str(user_id))
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
                         pass1.delete(0, 'end')
-                        listener1.start()
-                        print("Listener Start")
                         controller.show_frame(Main)
                         gennewkey()
                         lbl_result.config(text="", fg="red")
@@ -415,8 +405,6 @@ class Main(tk.Frame):
             except:
                 print("Nothing to remove")
             controller.show_frame(Login)
-            print("Listener Stop")
-            listener1.stop()
 
         def showPDF(file_name):
             v1 = pdf.ShowPdf()
