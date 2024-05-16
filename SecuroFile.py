@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import random2 as random
+import keyboard as bkey
 from email.message import EmailMessage
 import smtplib
 import tkinter as tk
@@ -54,10 +55,13 @@ def gennewkey():
 
 #global functions
 def database():
-    print("Database Connection Established")
-    global con, cursor
-    con = mysql.connector.connect(host="capstonedb-capstone.a.aivencloud.com", port="23958", user="avnadmin", password="AVNS_b4dbBAXNWbKgOOtz31T", database="capstone")
-    cursor = con.cursor()
+    try:
+        print("Database Connection Established")
+        global con, cursor
+        con = mysql.connector.connect(host="capstonedb-capstone.a.aivencloud.com", port="23958", user="avnadmin", password="AVNS_b4dbBAXNWbKgOOtz31T", database="capstone")
+        cursor = con.cursor()
+    except:
+        tk.messagebox.showinfo(title="SecuroFile", message="No internet connection.")
 
 def getHardwareId():
     this = str(subprocess.check_output('wmic csproduct get uuid'), 'utf-8').split('\n')[1].strip()
@@ -65,13 +69,14 @@ def getHardwareId():
 
 #keyboard listener
 def on_press(key):
-    if key == keyboard.Key.print_screen:
-        print('Printscreen is prohibited')
-        v1.img_object_li.clear()
+    v1.img_object_li.clear()
 
 listener1 = keyboard.Listener(on_press=on_press)
 print("Listener Start")
 listener1.start()
+
+keytb="print_screen" #The key you want to block
+bkey.block_key(keytb)
 
 v1=pdf.ShowPdf()
 
