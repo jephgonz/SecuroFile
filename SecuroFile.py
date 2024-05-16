@@ -410,7 +410,7 @@ class Main(tk.Frame):
             v1 = pdf.ShowPdf()
             v1.img_object_li.clear()
             v1 = pdf.ShowPdf()
-            v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40, zoomDPI=95)
+            v2 = v1.pdf_view(self, pdf_location=file_name, width=95, height=40, zoomDPI=90)
             v2.place(x=480, y=25)
 
         def refresh():
@@ -620,7 +620,6 @@ class Contacts(tk.Frame):
             print("File Name: " + str(tail))
             print("File Directory: " + str(head))
             print("File Path: " + str(file_path))
-            # encryption process
             with open(file_path, 'rb') as fo:
                 contacts = fo.read()
             with open('user/contacts.txt', 'wb') as fo:
@@ -789,6 +788,7 @@ class Device(tk.Frame):
                     smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
             except:
                 print("Something went wrong")
+                tk.messagebox.showinfo(title="SecuroFile", message="No device selected.")
 
         def regdev(current_machine_id):
             database()
@@ -924,11 +924,35 @@ class Verification2(tk.Frame):
         entcode = Entry(self, font=OTP, textvariable=encode, width=22, justify='center')
         entcode.place(x=75, y=350)
 
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=150, y=500)
+        sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()),
+                               fg="#30A2FF", bg="#292f36", borderwidth=0)
+        sendOTPButton.place(x=185, y=530)
+
         buttonset = Button(self, font=FONT, text="Cancel", command=lambda: controller.show_frame(Login), fg="#FF2400", bg="#292f36", borderwidth=0)
         buttonset.place(x=25, y=20)
 
         buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(entcode.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
         buttonproceed.place(x=72, y=425)
+
+        def sendOTP():
+            global tempOTP
+            tempOTP = random.randint(100000, 999999)
+            print("OTP: " + str(tempOTP))
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+
+                msg = EmailMessage()
+                msg['Subject'] = 'Device verification code: ' + str(tempOTP)
+                msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                msg['To'] = current_email
+                msg.set_content('Use this code to verify your identity: ' + str(tempOTP))
+
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
 
         def verifyOTP(encode, lbl_result):
             typedOTP = str(encode)
