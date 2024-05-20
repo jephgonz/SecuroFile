@@ -33,12 +33,14 @@ isVerified = False
 tempOTP = 000000
 Heading = ('Nirmala UI', 24, 'bold')
 Heading2 = ('Nirmala UI', 20, 'bold')
+Heading3 = ('Nirmala UI', 30, 'bold')
 FONT = ('Nirmala UI', 14, 'bold')
 FONTR = ('Nirmala UI', 14)
 Small = ('Nirmala UI', 11, 'bold')
 SmallR = ('Nirmala UI', 11)
 OTP = ('Nirmala UI', 20)
 BGCOL = "#27374D"
+tempquery = ''
 
 #OTP email settings
 EMAIL_ADDRESS = 'jrgmillan23@gmail.com'
@@ -92,7 +94,7 @@ class SecuroFileApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        for F in (Login, Register, Main, Contacts, Verification, Device, AskEmail, Verification2, ResetPassword):
+        for F in (Login, NewAccountDeviceRegistration, Register, RActivation, Main, Contacts, Verification, Device, AskEmail, Verification2, ResetPassword):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -141,11 +143,24 @@ class Login(tk.Frame):
 
         def retoforpas():
             controller.show_frame(AskEmail)
-            lbl_result.config(text="", fg="red")
+            lbl_result.config(text="")
 
         def retoreg():
             controller.show_frame(Register)
-            lbl_result.config(text="", fg="red")
+            lbl_result.config(text="")
+
+        def loginAlert():
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                msg = EmailMessage()
+                msg['Subject'] = 'Login alert'
+                msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                msg['To'] = current_email
+                msg.set_content('Your account was recently logged into a device: ' + getHardwareId() + '.')
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
 
         def login_user(EMAIL, PASS, lbl_result):
             print("Verification: "+str(isVerified))
@@ -171,25 +186,68 @@ class Login(tk.Frame):
                         current_email = EMAIL
                         print("User ID: " + str(user_id))
                     if bcrypt.checkpw(PASS.encode(), hashed.encode()):
-                        pass1.delete(0, 'end')
-                        controller.show_frame(Main)
-                        gennewkey()
-                        lbl_result.config(text="", fg="red")
-                        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-                            smtp.ehlo()
-                            smtp.starttls()
-                            smtp.ehlo()
-                            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                            msg = EmailMessage()
-                            msg['Subject'] = 'Login alert'
-                            msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
-                            msg['To'] = current_email
-                            msg.set_content('Your account was recently logged into a device: ' + getHardwareId() + '.')
-                            smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+                        database()
+                        query2 = "SELECT COUNT(email) FROM `user_devices` WHERE email = '" + current_email + "'"
+                        cursor.execute(query2)
+                        table2 = cursor.fetchall()
+                        count = 0
+                        for row2 in table2:
+                            count = row2[0]
+                        if count == 0:
+                            controller.show_frame(NewAccountDeviceRegistration)
+                            pass1.delete(0, 'end')
+                            gennewkey()
+                            lbl_result.config(text="")
+                            loginAlert()
+                        else:
+                            controller.show_frame(Main)
+                            pass1.delete(0, 'end')
+                            gennewkey()
+                            lbl_result.config(text="")
+                            loginAlert()
                     else:
                         lbl_result.config(text="Password incorrect", fg="red")
                 else:
                     lbl_result.config(text="Email not registered", fg="red")
+
+class NewAccountDeviceRegistration(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.configure(bg="#292F36")
+
+        load = Image.open("assets/newuser.png")
+        render = ImageTk.PhotoImage(load)
+        img = Label(self, image=render, borderwidth=0)
+        img.image = render
+        img.place(x=0, y=0)
+
+        heading = Label(self, text='Device Registration', fg="#ffffFF", bg="#292f36", font=Heading3)
+        heading.place(x=455,y=70)
+        lbl_drotp = Label(self, text="We detected that your account dont have a registered device, please register this device to continue using SecuroFile", font=FONT, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=135, y=420)
+        btn_register = Button(self, font=FONT, text="Register Device", state=NORMAL, command=lambda:regDevice(), fg="#FFFFFF", bg="#4ECDC4", borderwidth=0, height=2, width=17)
+        btn_register.place(x=540, y=500)
+
+        def regDevice():
+            database()
+            print("Current Device ID: " + str(getHardwareId()))
+            sql = "INSERT INTO `devices`(`user_id`, `deviceID`) VALUES (%s,%s)"
+            val = ("" + str(user_id) + "", "" + getHardwareId() + "")
+            cursor.execute(sql, val)
+            con.commit()
+            controller.show_frame(Main)
+            tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                msg = EmailMessage()
+                msg['Subject'] = 'A device has been added'
+                msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                msg['To'] = current_email
+                msg.set_content('Device: ' + getHardwareId() + ' has been added to your account.')
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
 
 #register page
 class Register(tk.Frame):
@@ -206,12 +264,12 @@ class Register(tk.Frame):
 
         heading = Label(self, text='Register', fg="#000000", bg="#FFFFFF", font=Heading)
         heading.place(x=70,y=100)
-        FNAME = StringVar()
-        MNAME = StringVar()
-        LNAME = StringVar()
-        EMAIL = StringVar()
-        PASS = StringVar()
+        RFNAME = StringVar()
+        RMNAME = StringVar()
+        RLNAME = StringVar()
+        REMAIL = StringVar()
         RPASS = StringVar()
+        REPASS = StringVar()
         lbl_firstname = Label(self, text="First name", font=Small, bd=5, fg="#000000", bg="#FFFFFF")
         lbl_firstname.place(x=70, y=170)
         lbl_middlename = Label(self, text="Middle name", font=Small, bd=5, fg="#000000", bg="#FFFFFF")
@@ -228,69 +286,159 @@ class Register(tk.Frame):
         lbl_result.place(x=70, y=515)
         lbl_login = Label(self, text="Already have an account?", font=Small, fg="#000000", bg="#FFFFFF")
         lbl_login.place(x=120, y=605)
-        fname = Entry(self, font=SmallR, textvariable=FNAME, width=42)
-        fname.place(x=75, y=200)
-        mname = Entry(self, font=SmallR, textvariable=MNAME, width=42)
-        mname.place(x=75, y=260)
-        lname = Entry(self, font=SmallR, textvariable=LNAME, width=42)
-        lname.place(x=75, y=315)
-        email = Entry(self, font=SmallR, textvariable=EMAIL, width=42)
-        email.place(x=75, y=370)
-        pass1 = Entry(self, font=SmallR, textvariable=PASS, width=42, show="*")
-        pass1.place(x=75, y=425)
+        rfname = Entry(self, font=SmallR, textvariable=RFNAME, width=42)
+        rfname.place(x=75, y=200)
+        rmname = Entry(self, font=SmallR, textvariable=RMNAME, width=42)
+        rmname.place(x=75, y=260)
+        rlname = Entry(self, font=SmallR, textvariable=RLNAME, width=42)
+        rlname.place(x=75, y=315)
+        remail = Entry(self, font=SmallR, textvariable=REMAIL, width=42)
+        remail.place(x=75, y=370)
         rpass1 = Entry(self, font=SmallR, textvariable=RPASS, width=42, show="*")
-        rpass1.place(x=75, y=480)
+        rpass1.place(x=75, y=425)
+        repass1 = Entry(self, font=SmallR, textvariable=REPASS, width=42, show="*")
+        repass1.place(x=75, y=480)
         btn_register = Button(self, font=FONT, text="Sign Up", state=NORMAL,
-                              command=lambda: register_user(FNAME.get(), MNAME.get(), LNAME.get(), EMAIL.get(),
-                                                            PASS.get(), RPASS.get(), lbl_result, btn_register),
+                              command=lambda: register_user(RFNAME.get(), RMNAME.get(), RLNAME.get(), REMAIL.get(),
+                                                            RPASS.get(), REPASS.get(), lbl_result, btn_register),
                               fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
         btn_register.place(x=120, y=550)
         button2 = Button(self, font=Small, text="Login", command=lambda: retologin(), fg="#30A2FF",
                          bg="#ffffff", height=1, width=4, borderwidth=0)
         button2.place(x=305, y=602)
 
+        def resetF():
+            rfname.delete(0, 'end')
+            rmname.delete(0, 'end')
+            rlname.delete(0, 'end')
+            remail.delete(0, 'end')
+            rpass1.delete(0, 'end')
+            repass1.delete(0, 'end')
+            lbl_result.config(text="")
+            btn_register['state'] = NORMAL
+
         def retologin():
             controller.show_frame(Login)
-            fname.delete(0, 'end')
-            mname.delete(0, 'end')
-            lname.delete(0, 'end')
-            email.delete(0, 'end')
-            pass1.delete(0, 'end')
-            rpass1.delete(0, 'end')
+            resetF()
 
-        def register_user(FNAME, MNAME, LNAME, EMAIL, PASS, RPASS, lbl_result, btn_register):
+        def register_user(RFNAME, RMNAME, RLNAME, REMAIL, RPASS, REPASS, lbl_result, btn_register):
             database()
-            if FNAME == "" or MNAME == "" or LNAME == "" or EMAIL == "" or PASS == "" or RPASS == "":
+            global current_email
+            current_email = REMAIL
+            if RFNAME == "" or RMNAME == "" or RLNAME == "" or REMAIL == "" or RPASS == "" or REPASS == "":
                 lbl_result.config(text="Please complete the required field!", fg="orange")
             else:
-                if PASS == RPASS:
-                    queryemail = "SELECT * FROM `users` WHERE email='" + EMAIL + "'"
+                if RPASS == REPASS:
+                    lbl_result.config(text="")
+                    queryemail = "SELECT * FROM `users` WHERE email='" + REMAIL + "'"
                     cursor.execute(queryemail)
                     if cursor.fetchone() is not None:
                         lbl_result.config(text="Email is already registered", fg="red")
                     else:
-                        PASS = bcrypt.hashpw(PASS.encode('utf8'), bcrypt.gensalt())
-                        cursor.execute(
-                            "INSERT INTO `users` (fname, mname, lname, email, password) VALUES(%s, %s, %s, %s, %s)",
-                            (str(FNAME), str(MNAME), str(LNAME), str(EMAIL), str(PASS.decode("utf-8"))))
-                        lbl_result.config(text="Successfully Created!", fg="green")
-                        con.commit()
-                        cursor.close()
-                        con.close()
-                        btn_register['state'] = DISABLED
-                        with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-                            smtp.ehlo()
-                            smtp.starttls()
-                            smtp.ehlo()
-                            smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-                            msg = EmailMessage()
-                            msg['Subject'] = 'New User Registration'
-                            msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
-                            msg['To'] = current_email
-                            msg.set_content('This email is to confirm that we have received your registration information.')
-                            smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+                        RPASS = bcrypt.hashpw(RPASS.encode('utf8'), bcrypt.gensalt())
+                        global tempquery
+                        tempquery = "INSERT INTO `users` (fname, mname, lname, email, password) VALUES ('"+str(RFNAME)+"', '"+str(RMNAME)+"', '"+str(RLNAME)+"', '"+str(REMAIL)+"', '"+str(RPASS.decode("utf-8"))+"')"
+                        print("To be executed: "+tempquery)
+                        toActivate()
                 else:
                     lbl_result.config(text="Password does not match!", fg="red")
+
+        def toActivate():
+            controller.show_frame(RActivation)
+            resetF()
+            global tempOTP
+            tempOTP = random.randint(100000, 999999)
+            print("OTP: " + str(tempOTP))
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+
+                msg = EmailMessage()
+                msg['Subject'] = 'Registration verification code: ' + str(tempOTP)
+                msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                msg['To'] = current_email
+                msg.set_content('Use this code to activate your account: ' + str(tempOTP))
+
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+
+class RActivation(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.configure(bg="#292F36")
+
+        load = Image.open("assets/otp.png")
+        render = ImageTk.PhotoImage(load)
+        img = Label(self, image=render, borderwidth=0)
+        img.image = render
+        img.place(x=0, y=0)
+
+        heading = Label(self, text='Activation', fg="#ffffFF", bg="#292f36", font=Heading)
+        heading.place(x=30,y=20)
+        lbl_drotp = Label(self, text="Enter OTP Code sent to your email", font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=115, y=300)
+
+        lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
+        lbl_result.place(x=195, y=395)
+
+        encode = StringVar()
+        entcode = Entry(self, font=OTP, textvariable=encode, width=22, justify='center')
+        entcode.place(x=75, y=350)
+
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=150, y=500)
+        sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        sendOTPButton.place(x=185, y=530)
+        buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Register), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        buttonset.place(x=25, y=80)
+        buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(entcode.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
+        buttonproceed.place(x=72, y=425)
+
+        def sendOTP():
+            global tempOTP
+            tempOTP = random.randint(100000, 999999)
+            print("OTP: " + str(tempOTP))
+            with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                smtp.ehlo()
+                smtp.starttls()
+                smtp.ehlo()
+                smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+
+                msg = EmailMessage()
+                msg['Subject'] = 'Registration verification code: ' + str(tempOTP)
+                msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                msg['To'] = current_email
+                msg.set_content('Use this code to activate your account: ' + str(tempOTP))
+
+                smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+
+        def verifyOTP(encode, lbl_result):
+            typedOTP = str(encode)
+            print(typedOTP)
+            if typedOTP == str(tempOTP):
+                controller.show_frame(Login)
+                entcode.delete(0, 'end')
+                global tempquery
+                cursor.execute(tempquery)
+                con.commit()
+                cursor.close()
+                con.close()
+                with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                    smtp.ehlo()
+                    smtp.starttls()
+                    smtp.ehlo()
+                    smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                    msg = EmailMessage()
+                    msg['Subject'] = 'Account Registered'
+                    msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                    msg['To'] = current_email
+                    msg.set_content('Your account has been successfully registered.')
+                    smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+                lbl_result.config(text="")
+                tk.messagebox.showinfo(title="SecuroFile", message="Registration Successful")
+            else:
+                lbl_result.config(text="Invalid OTP", fg="orange")
 
 
 #main page
@@ -312,7 +460,7 @@ class Main(tk.Frame):
         listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=15, font=('Nirmala UI', 16))
         listbox.place(x=30, y=218)
 
-        lbl_firstname = Label(self, text="Select recieptiens:", font=Small, bd=5, fg="#ffffff", bg="#292f36")
+        lbl_firstname = Label(self, text="Select recipients:", font=Small, bd=5, fg="#ffffff", bg="#292f36")
         lbl_firstname.place(x=25, y=180)
 
         reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()),  fg="#30A2FF", bg="#292f36", borderwidth=0)
@@ -379,6 +527,7 @@ class Main(tk.Frame):
             if isVerified is True:
                 controller.show_frame(Device)
             else:
+                controller.show_frame(Verification)
                 global tempOTP
                 tempOTP = random.randint(100000, 999999)
                 print("OTP: " + str(tempOTP))
@@ -395,9 +544,9 @@ class Main(tk.Frame):
                     msg.set_content('Use this code to verify your identity: ' + str(tempOTP))
 
                     smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
-                controller.show_frame(Verification)
 
         def clearPDF():
+            controller.show_frame(Login)
             v1 = pdf.ShowPdf()
             v1.img_object_li.clear()
             global isVerified
@@ -409,7 +558,6 @@ class Main(tk.Frame):
                 os.remove("cache/key")
             except:
                 print("Nothing to remove")
-            controller.show_frame(Login)
 
         def showPDF(file_name):
             v1 = pdf.ShowPdf()
@@ -721,10 +869,10 @@ class Verification(tk.Frame):
             typedOTP = str(encode)
             print(typedOTP)
             if typedOTP == str(tempOTP):
+                controller.show_frame(Device)
                 entcode.delete(0, 'end')
                 global isVerified
                 isVerified = True
-                controller.show_frame(Device)
             else:
                 lbl_result.config(text="Invalid OTP", fg="orange")
 
@@ -889,6 +1037,7 @@ class AskEmail(tk.Frame):
                 queryable = "SELECT * FROM `users` WHERE email='" + EMAIL + "'"
                 cursor.execute(queryable)
                 if cursor.fetchone() is not None:
+                    controller.show_frame(Verification2)
                     global tempOTP
                     tempOTP = random.randint(100000, 999999)
                     print("OTP: " + str(tempOTP))
@@ -906,7 +1055,6 @@ class AskEmail(tk.Frame):
 
                         smtp.sendmail(EMAIL_ADDRESS, EMAIL, msg.as_string())
                     email.delete(0, 'end')
-                    controller.show_frame(Verification2)
 
 class Verification2(tk.Frame):
     def __init__(self, parent, controller):
@@ -963,8 +1111,8 @@ class Verification2(tk.Frame):
             typedOTP = str(encode)
             print(typedOTP)
             if typedOTP == str(tempOTP):
-                entcode.delete(0, 'end')
                 controller.show_frame(ResetPassword)
+                entcode.delete(0, 'end')
             else:
                 lbl_result.config(text="Invalid OTP", fg="orange")
 
@@ -1019,6 +1167,7 @@ class ResetPassword(tk.Frame):
             if pass1 != pass2:
                 lbl_result.config(text="Password does not match", fg="orange")
             else:
+                controller.show_frame(Login)
                 global current_email
                 PASS = bcrypt.hashpw(pass2.encode('utf8'), bcrypt.gensalt())
                 cursor.execute(
@@ -1029,8 +1178,20 @@ class ResetPassword(tk.Frame):
                 con.close()
                 pasS1.delete(0, 'end')
                 pasS2.delete(0, 'end')
+
+                with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+                    smtp.ehlo()
+                    smtp.starttls()
+                    smtp.ehlo()
+                    smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+                    msg = EmailMessage()
+                    msg['Subject'] = 'Reset Account Password'
+                    msg['From'] = 'SecuroFile <' + EMAIL_ADDRESS + '>'
+                    msg['To'] = current_email
+                    msg.set_content('Your password has been changed successfully.')
+                    smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+
                 tk.messagebox.showinfo(title="SecuroFile", message="Password changed successfully!")
-                controller.show_frame(Login)
 
 #start app code
 app = SecuroFileApp()
