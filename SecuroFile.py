@@ -47,7 +47,7 @@ EMAIL_ADDRESS = 'jrgmillan23@gmail.com'
 EMAIL_PASSWORD = 'jukphpbakxevdxhs'
 
 #generate temp key
-key = os.urandom(24)
+key = os.urandom(32)
 
 def gennewkey():
     global key
