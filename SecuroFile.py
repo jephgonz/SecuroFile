@@ -51,7 +51,7 @@ key = os.urandom(32)
 
 def gennewkey():
     global key
-    key = os.urandom(24)
+    key = os.urandom(32)
     with open('cache/key', 'wb') as filekey:
         filekey.write(key)
 
@@ -554,8 +554,9 @@ class Main(tk.Frame):
             global tempOTP
             tempOTP = 000000
             try:
-                os.remove("cache/raw")
                 os.remove("cache/key")
+                os.remove("cache/raw")
+                os.remove("cache/recipient")
             except:
                 print("Nothing to remove")
 
