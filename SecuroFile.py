@@ -22,6 +22,7 @@ from pynput import keyboard
 import sys
 sys.path.append('../customlib')
 from customlib import tkPDFViewer as pdf
+import pyzipper
 
 #global variables
 uni_key = b'9\xc8=L\xca\x8ap_\x02p\xdd\x00\noi\x94\x15}\xe8\xb5\xf0\xdaI\x04'
@@ -48,6 +49,9 @@ EMAIL_PASSWORD = 'jukphpbakxevdxhs'
 
 #generate temp key
 key = os.urandom(32)
+print(key)
+permakey1 = b'securofilekey'
+permakey2 = permakey1.decode('utf-8')
 
 def gennewkey():
     global key
@@ -581,15 +585,21 @@ class Main(tk.Frame):
             print("Contacts refreshed")
 
         def mergeenc(directory,file_name):
-            print("Merging")
-            with zipfile.ZipFile(directory + '/' + file_name + '.enc', 'w') as zipF:
+            with pyzipper.AESZipFile(directory + '/' + file_name + '.enc',
+                                     'w',
+                                     compression=pyzipper.ZIP_LZMA,
+                                     encryption=pyzipper.WZ_AES) as zf:
+                zf.setpassword(permakey1)
                 for file in list_files:
-                    zipF.write(file, compress_type=zipfile.ZIP_DEFLATED)
+                    zf.write(file)
+            with pyzipper.AESZipFile(directory + '/' + file_name + '.enc') as zf:
+                zf.setpassword(permakey1)
 
         def splitenc(file_path):
             print("Splitting")
-            with zipfile.ZipFile(file_path, mode="r") as archive:
-                archive.extractall("")
+            with pyzipper.AESZipFile(file_path, 'r', compression=pyzipper.ZIP_DEFLATED,
+                                     encryption=pyzipper.WZ_AES) as extracted_zip:
+                extracted_zip.extractall(pwd=str.encode(permakey2))
 
         def getRecipient():
             file1 = open('cache/recipient', 'r')
@@ -665,6 +675,7 @@ class Main(tk.Frame):
                 print("File Name: " + str(tail))
                 print("File Directory: " + str(head))
                 print("File Path: " + str(file_path))
+                print(file_path)
                 #decryption process
                 splitenc(file_path)
                 isDecrypted = False
