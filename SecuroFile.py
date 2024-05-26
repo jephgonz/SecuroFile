@@ -240,7 +240,6 @@ class NewAccountDeviceRegistration(tk.Frame):
             cursor.execute(sql, val)
             con.commit()
             controller.show_frame(Main)
-            tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
             with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
                 smtp.ehlo()
                 smtp.starttls()
@@ -252,6 +251,7 @@ class NewAccountDeviceRegistration(tk.Frame):
                 msg['To'] = current_email
                 msg.set_content('Device: ' + getHardwareId() + ' has been added to your account.')
                 smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+            tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
 
 #register page
 class Register(tk.Frame):
@@ -939,7 +939,6 @@ class Device(tk.Frame):
                 cursor.execute(query)
                 con.commit()
                 print("Device Removed")
-                tk.messagebox.showinfo(title="SecuroFile", message="Device removed successfully.")
                 with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
                     smtp.ehlo()
                     smtp.starttls()
@@ -951,6 +950,7 @@ class Device(tk.Frame):
                     msg['To'] = current_email
                     msg.set_content('Device: ' + devstr + ' has been removed from your account.')
                     smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+                tk.messagebox.showinfo(title="SecuroFile", message="Device removed successfully.")
             except:
                 print("Something went wrong")
                 tk.messagebox.showinfo(title="SecuroFile", message="No device selected.")
@@ -984,7 +984,6 @@ class Device(tk.Frame):
                     # part when to insert the added device to listbox
                     listbox.insert(listbox.size(), current_machine_id)
                     print("Device registered successfully.")
-                    tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
                     with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
                         smtp.ehlo()
                         smtp.starttls()
@@ -996,6 +995,7 @@ class Device(tk.Frame):
                         msg['To'] = current_email
                         msg.set_content('Device: ' + current_machine_id + ' has been added to your account.')
                         smtp.sendmail(EMAIL_ADDRESS, current_email, msg.as_string())
+                    tk.messagebox.showinfo(title="SecuroFile", message="Device registered successfully.")
             else:
                 print("Maximum devices allocated.")
                 tk.messagebox.showinfo(title="SecuroFile", message="Maximum devices allocated.")
