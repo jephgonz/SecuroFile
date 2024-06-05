@@ -689,7 +689,7 @@ class Main(tk.Frame):
                 showPDF(file_path)
                 msg_box = tk.messagebox.askquestion(
                     "Confirm PDF file",
-                    "Are you sure you want to this PDF file?",
+                    "Are you sure you want to encrypt this PDF file?",
                     icon="warning",
                 )
                 if msg_box == "yes":
@@ -944,17 +944,19 @@ class Device(tk.Frame):
 
         heading = Label(self, text='Device List', fg="#FFFFFF", bg="#292F36", font=Heading)
         heading.place(x=30,y=20)
-        heading1 = Label(self, text="Current Device: " + getHardwareId(), fg="#FFFFFF", bg="#292F36", font=('Nirmala UI', 9, 'bold'))
-        heading1.place(x=30,y=130)
-        listbox = Listbox(self, width=68, height=25)
-        listbox.place(x=30, y=230)
+        heading1 = Label(self, text="Current Device:", anchor="w", fg="#FFFFFF", bg="#292F36", font=('Alte Haas Grotesk', 12, 'bold'))
+        heading1.place(x=30,y=140)
+        heading2 = Label(self, text=getHardwareId(), anchor="w", fg="#FFFFFF", bg="#292F36", font=('Alte Haas Grotesk', 12, 'bold'))
+        heading2.place(x=30, y=165)
+        listbox = Listbox(self, width=68, height=24)
+        listbox.place(x=30, y=255)
         listbox.insert(0, "Refresh to Reveal Devices")
         reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()), fg="#30A2FF", bg="#292f36", borderwidth=0)
-        reButton.place(x=380, y=195)
+        reButton.place(x=380, y=215)
         addButton = Button(self, font=FONT, text="Register Device", state=NORMAL,command=lambda: (regdev(getHardwareId())),bg="#50C878", fg="#FFFFFF", borderwidth=0)
-        addButton.place(x=30, y=175)
+        addButton.place(x=30, y=205)
         delButton = Button(self, font=FONT, text="Remove Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
-        delButton.place(x=30, y=650)
+        delButton.place(x=30, y=655)
         buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
         buttonset.place(x=25, y=80)
 
