@@ -32,16 +32,19 @@ user_id = ''
 current_email = ''
 isVerified = False
 tempOTP = 000000
-Heading = ('Nirmala UI', 24, 'bold')
-Heading2 = ('Nirmala UI', 20, 'bold')
-Heading3 = ('Nirmala UI', 30, 'bold')
-FONT = ('Nirmala UI', 14, 'bold')
-FONTR = ('Nirmala UI', 14)
-Small = ('Nirmala UI', 11, 'bold')
-SmallR = ('Nirmala UI', 11)
-OTP = ('Nirmala UI', 20)
+MainT = ('Alte Haas Grotesk', 36, 'bold')
+Heading = ('Alte Haas Grotesk', 18, 'bold')
+Heading2 = ('Alte Haas Grotesk', 20, 'bold')
+Heading3 = ('Alte Haas Grotesk', 30, 'bold')
+FONT = ('Alte Haas Grotesk', 14, 'bold')
+FONTR = ('Alte Haas Grotesk', 20)
+Small = ('Alte Haas Grotesk', 13, 'bold')
+SmallF = ('Alte Haas Grotesk', 11, 'bold')
+SmallR = ('Alte Haas Grotesk', 11)
+OTP = ('Alte Haas Grotesk', 20)
 BGCOL = "#27374D"
 tempquery = ''
+FirstName = ''
 
 #OTP email settings
 EMAIL_ADDRESS = 'jrgmillan23@gmail.com'
@@ -121,29 +124,31 @@ class Login(tk.Frame):
         img.image = render
         img.place(x=0, y=0)
 
+        securofile = Label(self, text='SecuroFile', fg="#FFFFFF", bg=BGCOL, font=MainT)
+        securofile.place(x=100, y=130)
         heading = Label(self, text='Login', fg="#FFFFFF", bg=BGCOL, font=Heading)
-        heading.place(x=50,y=100)
+        heading.place(x=50,y=210)
         EMAIL = StringVar()
         PASS = StringVar()
         lbl_username = Label(self, text="Email", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
-        lbl_username.place(x=40, y=200)
+        lbl_username.place(x=40, y=260)
         lbl_password = Label(self, text="Password", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
-        lbl_password.place(x=40, y=300)
-        email = Entry(self, font=FONTR, textvariable=EMAIL, width=36)
-        email.place(x=50, y=250)
-        pass1 = Entry(self, font=FONTR, textvariable=PASS, width=36, show="*")
-        pass1.place(x=50, y=350)
-        lbl_result = Label(self, text="", font=Small, fg="#FFFFFF", bg=BGCOL)
-        lbl_result.place(x=50, y=390)
+        lbl_password.place(x=40, y=360)
+        email = Entry(self, font=FONTR, textvariable=EMAIL, width=25)
+        email.place(x=50, y=310)
+        pass1 = Entry(self, font=FONTR, textvariable=PASS, width=25, show="*")
+        pass1.place(x=50, y=410)
+        lbl_result = Label(self, text="", font=SmallF, fg="#FFFFFF", bg=BGCOL)
+        lbl_result.place(x=50, y=455)
 
-        button3 = Button(self, font=Small, text="Forgotten your password?", command=lambda: retoforpas(), fg="#30A2FF",
+        button3 = Button(self, font=SmallF, text="Forgotten your password?", command=lambda: retoforpas(), fg="#30A2FF",
                          bg="#27374D", height=1, width=20, borderwidth=0)
-        button3.place(x=50, y=420)
+        button3.place(x=50, y=480)
 
         btn_login = Button(self, font=FONT, text="Log In", command=lambda: login_user(EMAIL.get(), PASS.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
-        btn_login.place(x=120, y=480)
+        btn_login.place(x=100, y=535)
         button2 = Button(self, font=FONT, text="Register", command=lambda: retoreg(), fg="#000000", bg="#DDE6ED", height=1, width=20)
-        button2.place(x=120, y=530)
+        button2.place(x=100, y=590)
 
         def retoforpas():
             controller.show_frame(AskEmail)
@@ -204,7 +209,14 @@ class Login(tk.Frame):
                             lbl_result.config(text="")
                             loginAlert()
                         else:
-                            controller.show_frame(Main)
+                            queryable = "SELECT * FROM `users` WHERE email='" + current_email + "'"
+                            cursor.execute(queryable)
+                            table = cursor.fetchall()
+                            global FirstName
+                            for row in table:
+                                print(row[1])
+                                FirstName = row[1]
+                            retomain()
                             pass1.delete(0, 'end')
                             gennewkey()
                             lbl_result.config(text="")
@@ -213,6 +225,9 @@ class Login(tk.Frame):
                         lbl_result.config(text="Password incorrect", fg="red")
                 else:
                     lbl_result.config(text="Email not registered", fg="red")
+
+        def retomain():
+            controller.show_frame(Main)
 
 class NewAccountDeviceRegistration(tk.Frame):
     def __init__(self, parent, controller):
@@ -227,10 +242,10 @@ class NewAccountDeviceRegistration(tk.Frame):
 
         heading = Label(self, text='Device Registration', fg="#ffffFF", bg="#292f36", font=Heading3)
         heading.place(x=455,y=70)
-        lbl_drotp = Label(self, text="We detected that your account dont have a registered device, please register this device to continue using SecuroFile", font=FONT, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=135, y=420)
-        btn_register = Button(self, font=FONT, text="Register Device", state=NORMAL, command=lambda:regDevice(), fg="#FFFFFF", bg="#4ECDC4", borderwidth=0, height=2, width=17)
-        btn_register.place(x=540, y=500)
+        lbl_drotp = Label(self, text="We detected that your account dont have a registered device\nplease register this device to continue using SecuroFile", font=Heading, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=290, y=420)
+        btn_register = Button(self, font=Heading, text="REGISTER DEVICE", state=NORMAL, command=lambda:regDevice(), fg="#000000", bg="#4ECDC4", borderwidth=0, height=2, width=17)
+        btn_register.place(x=520, y=530)
 
         def regDevice():
             database()
@@ -286,9 +301,9 @@ class Register(tk.Frame):
         lbl_password.place(x=70, y=395)
         lbl_password1 = Label(self, text="Repeat password", font=Small, bd=5, fg="#000000", bg="#FFFFFF")
         lbl_password1.place(x=70, y=450)
-        lbl_result = Label(self, text="", font=Small, fg="#000000", bg="#FFFFFF")
+        lbl_result = Label(self, text="", font=SmallF, fg="#000000", bg="#FFFFFF")
         lbl_result.place(x=70, y=515)
-        lbl_login = Label(self, text="Already have an account?", font=Small, fg="#000000", bg="#FFFFFF")
+        lbl_login = Label(self, text="Already have an account?", font=SmallF, fg="#000000", bg="#FFFFFF")
         lbl_login.place(x=120, y=605)
         rfname = Entry(self, font=SmallR, textvariable=RFNAME, width=42)
         rfname.place(x=75, y=200)
@@ -307,9 +322,9 @@ class Register(tk.Frame):
                                                             RPASS.get(), REPASS.get(), lbl_result, btn_register),
                               fg="#FFFFFF", bg="#30A2FF", height=1, width=20)
         btn_register.place(x=120, y=550)
-        button2 = Button(self, font=Small, text="Login", command=lambda: retologin(), fg="#30A2FF",
+        button2 = Button(self, font=SmallF, text="Login", command=lambda: retologin(), fg="#30A2FF",
                          bg="#ffffff", height=1, width=4, borderwidth=0)
-        button2.place(x=305, y=602)
+        button2.place(x=315, y=603)
 
         def resetF():
             rfname.delete(0, 'end')
@@ -379,25 +394,25 @@ class RActivation(tk.Frame):
         img.place(x=0, y=0)
 
         heading = Label(self, text='Activation', fg="#ffffFF", bg="#292f36", font=Heading)
-        heading.place(x=30,y=20)
+        heading.place(x=30,y=60)
         lbl_drotp = Label(self, text="Enter OTP Code sent to your email", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=115, y=300)
+        lbl_drotp.place(x=115, y=340)
 
-        lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
-        lbl_result.place(x=195, y=395)
+        lbl_result = Label(self, text="", font=SmallF, fg="orange", bg="#292f36")
+        lbl_result.place(x=215, y=435)
 
         encode = StringVar()
-        entcode = Entry(self, font=OTP, textvariable=encode, width=22, justify='center')
-        entcode.place(x=75, y=350)
+        entcode = Entry(self, font=OTP, textvariable=encode, width=25, justify='center')
+        entcode.place(x=77, y=390)
 
-        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=150, y=500)
-        sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
-        sendOTPButton.place(x=185, y=530)
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=SmallF, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=160, y=540)
+        sendOTPButton = Button(self, font=SmallF, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        sendOTPButton.place(x=205, y=570)
         buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Register), fg="#30A2FF", bg="#292f36", borderwidth=0)
-        buttonset.place(x=25, y=80)
+        buttonset.place(x=25, y=120)
         buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(entcode.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
-        buttonproceed.place(x=72, y=425)
+        buttonproceed.place(x=72, y=465)
 
         def sendOTP():
             global tempOTP
@@ -452,23 +467,37 @@ class Main(tk.Frame):
 
         self.configure(bg="#292F36")
 
-        v2=v1.pdf_view(self,pdf_location="", width=95, height=40)
-        v2.place(x=480,y=25)
+        load = Image.open("assets/main.png")
+        render = ImageTk.PhotoImage(load)
+        img = Label(self, image=render, borderwidth=0)
+        img.image = render
+        img.place(x=0, y=0)
 
-        heading = Label(self, text='SecuroFile', fg="#FFFFFF", bg="#292F36", font=Heading)
-        heading.place(x=30,y=20)
+        v2=v1.pdf_view(self,pdf_location="", width=95, height=38)
+        v2.place(x=480,y=60)
+
+        heading = Label(self, text='SecuroFile', fg="#FFFFFF", bg="#292F36", font=Heading2)
+        heading.place(x=80,y=15)
+
+        reButton = Button(self, font=Heading, text="👁", state=NORMAL, command=lambda: (greetuser()), fg="#ffffff",
+                          bg="#292f36", borderwidth=0)
+        reButton.place(x=410, y=80)
+
+        greet = Label(self, text='Hello, ****!', fg="#FFFFFF", bg="#292F36", font=MainT)
+        greet.place(x=22, y=70)
+
         btn_encrypt = Button(self, font=FONT, text="Encrypt", state=NORMAL, command=lambda: (encrypt_file(key)), fg="#FFFFFF", bg="#4ECDC4", borderwidth=0, height=2, width=17)
-        btn_encrypt.place(x=30,y=100)
+        btn_encrypt.place(x=30,y=150)
         btn_decrypt = Button(self, font=FONT, text="Open File", state=NORMAL, command=lambda: (decrypt_file()), fg="#FFFFFF", bg="#50C878", borderwidth=0, height=2, width=17)
-        btn_decrypt.place(x=250,y=100)
-        listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=15, font=('Nirmala UI', 16))
-        listbox.place(x=30, y=218)
+        btn_decrypt.place(x=250,y=150)
+        listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=13, font=('Nirmala UI', 16))
+        listbox.place(x=30, y=278)
 
         lbl_firstname = Label(self, text="Select recipients:", font=Small, bd=5, fg="#ffffff", bg="#292f36")
-        lbl_firstname.place(x=25, y=180)
+        lbl_firstname.place(x=25, y=225)
 
         reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()),  fg="#30A2FF", bg="#292f36", borderwidth=0)
-        reButton.place(x=380, y=180)
+        reButton.place(x=380, y=225)
         # Using readlines()
         file1 = open('user/contacts.txt', 'r')
         Lines = file1.readlines()
@@ -480,11 +509,14 @@ class Main(tk.Frame):
             listbox.insert(count, line.strip())
 
         buttoncon = Button(self, font=Small, text="Contacts", command=lambda:controller.show_frame(Contacts), fg="#50C878", bg="#292f36", borderwidth=0)
-        buttoncon.place(x=240, y=30)
-        buttonset = Button(self, font=Small, text="Devices", command=lambda:verifyDevice(), fg="#30A2FF",bg="#292f36", borderwidth=0)
-        buttonset.place(x=320, y=30)
+        buttoncon.place(x=950, y=15)
+        buttonset = Button(self, font=Small, text="Manage Devices", command=lambda:verifyDevice(), fg="#30A2FF",bg="#292f36", borderwidth=0)
+        buttonset.place(x=1040, y=15)
         buttonlogout = Button(self, font=Small, text="Log Out", command=lambda:clearPDF(), fg="#FF6B6B", bg="#292f36", borderwidth=0)
-        buttonlogout.place(x=390,y=30)
+        buttonlogout.place(x=1190,y=15)
+
+        def greetuser():
+            greet.config(text='Hello, '+FirstName+'!')
 
         def sendtorec(recipients, current_email, fileenc):
             with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
@@ -654,16 +686,26 @@ class Main(tk.Frame):
                 print("File Path: " + str(file_path))
                 fileenc = file_path.replace(ext, '.enc')
                 print("Encrypted File Path: " + fileenc)
-                #encryption process
-                with open(file_path, 'rb') as fo:
-                    plaintext1 = fo.read()
-                enc = encrypt(plaintext1, key)
-                with open("cache/enc", 'wb') as fo:
-                    fo.write(enc)
-                mergeenc(head,root)
-                print("Succesfully Encrypted!")
-                sendtorec(email, current_email, fileenc)
-                tk.messagebox.showinfo(title="SecuroFile", message="Successfully Encrypted!")
+                showPDF(file_path)
+                msg_box = tk.messagebox.askquestion(
+                    "Confirm PDF file",
+                    "Are you sure you want to this PDF file?",
+                    icon="warning",
+                )
+                if msg_box == "yes":
+                    # encryption process
+                    with open(file_path, 'rb') as fo:
+                        plaintext1 = fo.read()
+                    enc = encrypt(plaintext1, key)
+                    with open("cache/enc", 'wb') as fo:
+                        fo.write(enc)
+                    mergeenc(head, root)
+                    print("Succesfully Encrypted!")
+                    sendtorec(email, current_email, fileenc)
+                    tk.messagebox.showinfo(title="SecuroFile", message="Successfully Encrypted!")
+                else:
+                    v1 = pdf.ShowPdf()
+                    v1.img_object_li.clear()
             except Exception:
                 traceback.print_exc()
 
@@ -730,7 +772,7 @@ class Contacts(tk.Frame):
         img.place(x=0, y=0)
 
         heading = Label(self, text='Contacts', fg="#FFFFFF", bg="#292F36", font=Heading)
-        heading.place(x=30,y=20)
+        heading.place(x=30,y=30)
 
         impButton = Button(self, font=Small, text="Import Contacts", state=NORMAL, command=lambda: (importContact()), fg="#30A2FF", bg="#292f36", borderwidth=0)
         impButton.place(x=320, y=30)
@@ -739,17 +781,17 @@ class Contacts(tk.Frame):
         buttonset.place(x=25, y=80)
 
         reButton = Button(self, font=Small, text="Refresh", state=NORMAL, command=lambda: (refresh()),  fg="#30A2FF", bg="#292f36", borderwidth=0)
-        reButton.place(x=380, y=195)
+        reButton.place(x=375, y=185)
 
         listbox = Listbox(self, selectmode=MULTIPLE, width=37, height=13, font=('Nirmala UI', 16))
         listbox.place(x=30, y=230)
-        entrybox = Entry(self, width=23, font=('Nirmala UI', 20))
+        entrybox = Entry(self, width=25, font=('Alte Haas Grotesk', 20))
         entrybox.place(x=30, y=140)
-        addButton = Button(self, font=FONT, text="Add", state=NORMAL, command=lambda: (add()), bg="#50C878", fg="#FFFFFF", borderwidth=0)
+        addButton = Button(self, font=FONT, text="  +  ", state=NORMAL, command=lambda: (add()), bg="#50C878", fg="#FFFFFF", borderwidth=0)
         addButton.place(x=390, y=140)
 
         delButton = Button(self, font=FONT, text="Remove Selected", state=NORMAL, command=lambda: (delete()), fg="#FFFFFF", bg="#FF6B6B", borderwidth=0)
-        delButton.place(x=30, y=650)
+        delButton.place(x=30, y=655)
 
         # Using readlines()
         file1 = open('user/contacts.txt', 'r')
@@ -839,25 +881,25 @@ class Verification(tk.Frame):
         img.place(x=0, y=0)
 
         heading = Label(self, text='Verification', fg="#ffffFF", bg="#292f36", font=Heading)
-        heading.place(x=30,y=20)
+        heading.place(x=30,y=60)
         lbl_drotp = Label(self, text="Enter OTP Code sent to your email", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=115, y=300)
+        lbl_drotp.place(x=115, y=340)
 
-        lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
-        lbl_result.place(x=195, y=395)
+        lbl_result = Label(self, text="", font=SmallF, fg="orange", bg="#292f36")
+        lbl_result.place(x=215, y=435)
 
         encode = StringVar()
-        entcode = Entry(self, font=OTP, textvariable=encode, width=22, justify='center')
-        entcode.place(x=75, y=350)
+        entcode = Entry(self, font=OTP, textvariable=encode, width=25, justify='center')
+        entcode.place(x=77, y=390)
 
-        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=150, y=500)
-        sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
-        sendOTPButton.place(x=185, y=530)
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=SmallF, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=160, y=540)
+        sendOTPButton = Button(self, font=SmallF, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()), fg="#30A2FF", bg="#292f36", borderwidth=0)
+        sendOTPButton.place(x=205, y=570)
         buttonset = Button(self, font=FONT, text="< Back", command=lambda: controller.show_frame(Main), fg="#30A2FF", bg="#292f36", borderwidth=0)
-        buttonset.place(x=25, y=80)
+        buttonset.place(x=25, y=120)
         buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(entcode.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
-        buttonproceed.place(x=72, y=425)
+        buttonproceed.place(x=72, y=465)
 
         def sendOTP():
             global tempOTP
@@ -1006,7 +1048,7 @@ class AskEmail(tk.Frame):
 
         self.configure(bg="#27374D")
 
-        load = Image.open("assets/bg.png")
+        load = Image.open("assets/fp.png")
         render = ImageTk.PhotoImage(load)
         img = Label(self, image=render, borderwidth=0)
         img.image = render
@@ -1022,7 +1064,7 @@ class AskEmail(tk.Frame):
 
         lbl_username = Label(self, text="Your email", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
         lbl_username.place(x=40, y=200)
-        email = Entry(self, font=FONTR, textvariable=EMAIL, width=36)
+        email = Entry(self, font=FONTR, textvariable=EMAIL, width=26)
         email.place(x=50, y=250)
         lbl_result = Label(self, text="", font=Small, fg="#FFFFFF", bg=BGCOL)
         lbl_result.place(x=50, y=290)
@@ -1030,12 +1072,12 @@ class AskEmail(tk.Frame):
         btn_login = Button(self, font=FONT, text="Send Code",
                            command=lambda: rescodeemail(EMAIL.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF",
                            height=1, width=20)
-        btn_login.place(x=120, y=340)
+        btn_login.place(x=100, y=340)
 
         button2 = Button(self, font=Small, text="Back to Login",
                          command=lambda: controller.show_frame(Login), fg="#30A2FF",
                          bg="#27374D", height=1, width=20, borderwidth=0)
-        button2.place(x=140, y=400)
+        button2.place(x=120, y=400)
 
         def rescodeemail(EMAIL, lbl_result):
             database()
@@ -1080,26 +1122,26 @@ class Verification2(tk.Frame):
         img.place(x=0, y=0)
 
         lbl_drotp = Label(self, text="Enter OTP Code sent to your email", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=115, y=300)
+        lbl_drotp.place(x=115, y=340)
 
-        lbl_result = Label(self, text="", font=Small, fg="orange", bg="#292f36")
-        lbl_result.place(x=195, y=395)
+        lbl_result = Label(self, text="", font=SmallF, fg="orange", bg="#292f36")
+        lbl_result.place(x=215, y=435)
 
         encode = StringVar()
-        entcode = Entry(self, font=OTP, textvariable=encode, width=22, justify='center')
-        entcode.place(x=75, y=350)
+        entcode = Entry(self, font=OTP, textvariable=encode, width=25, justify='center')
+        entcode.place(x=77, y=390)
 
-        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=Small, fg="#FFFFFF", bg="#292f36")
-        lbl_drotp.place(x=150, y=500)
-        sendOTPButton = Button(self, font=Small, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()),
+        lbl_drotp = Label(self, text="Didn't recieve OTP code?", font=SmallF, fg="#FFFFFF", bg="#292f36")
+        lbl_drotp.place(x=160, y=540)
+        sendOTPButton = Button(self, font=SmallF, text="Resend Code", state=NORMAL, command=lambda: (sendOTP()),
                                fg="#30A2FF", bg="#292f36", borderwidth=0)
-        sendOTPButton.place(x=185, y=530)
+        sendOTPButton.place(x=205, y=570)
 
         buttonset = Button(self, font=FONT, text="Cancel", command=lambda: controller.show_frame(Login), fg="#FF2400", bg="#292f36", borderwidth=0)
         buttonset.place(x=25, y=20)
 
         buttonproceed = Button(self, font=FONT, text="Verify", command=lambda: verifyOTP(entcode.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF", height=2, width=30, borderwidth=0)
-        buttonproceed.place(x=72, y=425)
+        buttonproceed.place(x=72, y=465)
 
         def sendOTP():
             global tempOTP
@@ -1134,7 +1176,7 @@ class ResetPassword(tk.Frame):
 
         self.configure(bg="#27374D")
 
-        load = Image.open("assets/bg.png")
+        load = Image.open("assets/fp.png")
         render = ImageTk.PhotoImage(load)
         img = Label(self, image=render, borderwidth=0)
         img.image = render
@@ -1154,23 +1196,23 @@ class ResetPassword(tk.Frame):
         pass1 = StringVar()
         pass2 = StringVar()
 
-        pass1L = Label(self, text="New password", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
+        pass1L = Label(self, text="New password", font=Small, bd=10, fg="#FFFFFF", bg=BGCOL)
         pass1L.place(x=40, y=200)
-        pasS1 = Entry(self, font=FONTR, textvariable=pass1, width=36, show="*")
+        pasS1 = Entry(self, font=FONTR, textvariable=pass1, width=26, show="*")
         pasS1.place(x=50, y=250)
 
-        pass2L = Label(self, text="Confirm password", font=FONT, bd=10, fg="#FFFFFF", bg=BGCOL)
-        pass2L.place(x=40, y=280)
-        pasS2 = Entry(self, font=FONTR, textvariable=pass2, width=36, show="*")
-        pasS2.place(x=50, y=330)
+        pass2L = Label(self, text="Confirm password", font=Small, bd=10, fg="#FFFFFF", bg=BGCOL)
+        pass2L.place(x=40, y=290)
+        pasS2 = Entry(self, font=FONTR, textvariable=pass2, width=26, show="*")
+        pasS2.place(x=50, y=340)
 
-        lbl_result = Label(self, text="", font=Small, fg="#FFFFFF", bg=BGCOL)
-        lbl_result.place(x=50, y=370)
+        lbl_result = Label(self, text="", font=SmallF, fg="#FFFFFF", bg=BGCOL)
+        lbl_result.place(x=50, y=390)
 
         btn_login = Button(self, font=FONT, text="Reset Password",
                            command=lambda: respas(pass1.get(), pass2.get(), lbl_result), fg="#FFFFFF", bg="#30A2FF",
                            height=1, width=20)
-        btn_login.place(x=120, y=410)
+        btn_login.place(x=100, y=430)
 
         def respas(pass1, pass2, lbl_result):
             database()
