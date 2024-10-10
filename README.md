@@ -2,4 +2,6 @@
 
 An Information Technology Capstone Project
 
-Millan, Jephthah Ruel G.
+Jephthah Ruel G. Millan
+
+Glory to God
